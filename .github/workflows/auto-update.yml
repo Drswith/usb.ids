@@ -32,7 +32,14 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          pnpm install
+
+          # 确保 jq 可用
+          if ! command -v jq &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y jq
+          fi
 
       - name: Get current version info
         id: current-version
@@ -73,9 +80,22 @@ jobs:
           # 重新生成版本信息（会自动更新package.json版本）
           pnpm run fetch-usb-ids --force
 
+          # 验证生成的文件
+          if [ ! -f "usb.ids.version.json" ]; then
+            echo "Error: usb.ids.version.json not generated"
+            exit 1
+          fi
+
       - name: Build project
         if: steps.check-update.outputs.needs_update == 'true'
-        run: pnpm run build
+        run: |
+          pnpm run build
+
+          # 验证构建产物
+          if [ ! -d "dist" ]; then
+            echo "Error: Build output directory 'dist' not found"
+            exit 1
+          fi
 
       - name: Commit and tag
         if: steps.check-update.outputs.needs_update == 'true'
@@ -85,7 +105,17 @@ jobs:
 
           # 获取新的版本号（从生成的版本文件中读取）
           NEW_VERSION=$(jq -r '.version' usb.ids.version.json)
+          if [ "$NEW_VERSION" = "null" ] || [ -z "$NEW_VERSION" ]; then
+            echo "Error: Failed to get version from usb.ids.version.json"
+            exit 1
+          fi
           echo "NEW_VERSION=v${NEW_VERSION}" >> $GITHUB_ENV
+
+          # 检查是否有变更需要提交
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
 
           # 提交所有变更
           git add .
@@ -112,12 +142,10 @@ jobs:
 
       - name: Create Release
         if: steps.check-update.outputs.needs_update == 'true'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEW_VERSION }}
-          release_name: Release ${{ env.NEW_VERSION }}
+          name: Release ${{ env.NEW_VERSION }}
           body: |
             🔄 自动更新USB.IDS数据
 
@@ -129,10 +157,12 @@ jobs:
             🔗 数据来源: http://www.linux-usb.org/usb.ids
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to npm
         if: steps.check-update.outputs.needs_update == 'true'
-        run: npm publish
+        run: pnpm publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -140,8 +170,10 @@ jobs:
         run: |
           if [ "${{ steps.check-update.outputs.needs_update }}" = "true" ]; then
             echo "✅ USB.IDS data updated and new version released"
-            echo "📦 New version: $(jq -r '.version' package.json)"
-            echo "🔗 Release: https://github.com/${{ github.repository }}/releases/tag/v$(jq -r '.version' package.json)"
+            VERSION=$(jq -r '.version' usb.ids.version.json)
+            echo "📦 New version: $VERSION"
+            echo "🔗 Release: https://github.com/${{ github.repository }}/releases/tag/v$VERSION"
+            echo "📊 NPM: https://www.npmjs.com/package/usb.ids"
           else
             echo "ℹ️ No update needed - USB.IDS data is already up to date"
           fi
