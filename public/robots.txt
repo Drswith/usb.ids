@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://drswith.github.io/usb.ids/sitemap.xml

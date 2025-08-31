@@ -3,136 +3,205 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>List of USB ID's - USB IDs Query Tool</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    
+    <!-- SEO Meta Tags -->
+    <title>USB IDs Database - Complete List of USB Vendor and Device IDs</title>
+    <meta name="description" content="Comprehensive USB IDs database with vendor and device information. Search through thousands of USB device identifiers, vendor codes, and product IDs. Updated daily from official sources." />
+    <meta name="keywords" content="USB IDs, USB vendor IDs, USB device IDs, USB database, hardware identification, device drivers, USB specifications" />
+    <meta name="author" content="USB IDs Database" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    <meta name="application-name" content="USB IDs Database" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="USB IDs Database - Complete List of USB Vendor and Device IDs" />
+    <meta property="og:description" content="Comprehensive USB IDs database with vendor and device information. Search through thousands of USB device identifiers updated daily." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://drswith.github.io/usb.ids/" />
+    <meta property="og:site_name" content="USB IDs Database" />
+    <meta property="og:image" content="https://drswith.github.io/usb.ids/favicon.svg" />
+    <meta property="og:image:width" content="32" />
+    <meta property="og:image:height" content="32" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="USB IDs Database - Complete List of USB Vendor and Device IDs" />
+    <meta name="twitter:description" content="Comprehensive USB IDs database with vendor and device information. Search through thousands of USB device identifiers updated daily." />
+    <meta name="twitter:image" content="https://drswith.github.io/usb.ids/favicon.svg" />
+    <meta name="twitter:creator" content="@usbids" />
+    <meta name="twitter:site" content="@usbids" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://drswith.github.io/usb.ids/" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "USB IDs Database",
+      "description": "Comprehensive database of USB vendor and device identifiers, updated daily from official sources",
+      "url": "https://drswith.github.io/usb.ids/",
+      "keywords": ["USB", "vendor IDs", "device IDs", "hardware identification", "USB specifications"],
+      "creator": {
+        "@type": "Organization",
+        "name": "USB IDs Database"
+      },
+      "distribution": {
+        "@type": "DataDownload",
+        "encodingFormat": "application/json",
+        "contentUrl": "https://drswith.github.io/usb.ids/usb.ids.json"
+      },
+      "temporalCoverage": "2024/..",
+      "spatialCoverage": "Worldwide"
+    }
+    </script>
 
   </head>
   <body>
     <div id="app">
-      <!-- 头部 -->
-      <header class="header">
+      <!-- Header -->
+      <header class="header" role="banner">
         <div class="container">
           <div class="header-content">
             <div class="header-left">
               <h1 class="title">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M9 12l2 2 4-4"/>
                   <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
                   <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
                   <path d="M9 12h6"/>
                 </svg>
-                USB IDs
+                USB IDs Database
               </h1>
-              <p class="subtitle">A database for quickly finding USB device vendor and product information</p>
+              <p class="subtitle">Comprehensive database for quickly finding USB device vendor and product information</p>
             </div>
-            <div class="header-stats">
+            <aside class="header-stats" aria-label="Database statistics">
               <div class="header-stat">
-                <div class="stat-number" id="headerTotalVendors">-</div>
+                <div class="stat-number" id="headerTotalVendors" aria-label="Total vendors">-</div>
                 <div class="stat-label">Vendors</div>
               </div>
               <div class="header-stat">
-                <div class="stat-number" id="headerTotalDevices">-</div>
+                <div class="stat-number" id="headerTotalDevices" aria-label="Total devices">-</div>
                 <div class="stat-label">Devices</div>
               </div>
-            </div>
+            </aside>
           </div>
         </div>
       </header>
 
       <!-- Version Information Section -->
-      <section class="version-section">
+      <section class="version-section" aria-label="Database version information">
         <div class="container">
           <div class="version-info">
             <div class="version-item">
               <span class="version-label">Version:</span>
-              <span class="version-value" id="versionNumber">-</span>
+              <span class="version-value" id="versionNumber" aria-label="Current database version">-</span>
             </div>
             <div class="version-item">
-              <span class="version-label">Fetch Time:</span>
-              <span class="version-value" id="fetchTime">-</span>
+              <span class="version-label">Last Updated:</span>
+              <span class="version-value" id="fetchTime" aria-label="Last update time">-</span>
             </div>
             <div class="version-item">
               <span class="version-label">Next Update:</span>
-              <span class="version-value" id="nextUpdate">-</span>
+              <span class="version-value" id="nextUpdate" aria-label="Next scheduled update">-</span>
             </div>
             <div class="version-item">
               <span class="version-label">Countdown:</span>
-              <span class="version-value countdown" id="countdown">-</span>
+              <span class="version-value countdown" id="countdown" aria-label="Time until next update">-</span>
             </div>
           </div>
          </div>
        </section>
  
        <!-- Search Section -->
-      <section class="search-section">
+      <section class="search-section" role="search" aria-label="USB device search">
         <div class="container">
+          <h2 class="sr-only">Search USB Devices and Vendors</h2>
           <div class="search-container">
             <div class="search-box">
-              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <label for="searchInput" class="sr-only">Search USB vendors and devices</label>
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <circle cx="11" cy="11" r="8"/>
                 <path d="m21 21-4.35-4.35"/>
               </svg>
               <input 
-                type="text" 
+                type="search" 
                 id="searchInput" 
                 placeholder="Search vendor name, device name, vendor ID or device ID..."
                 class="search-input"
+                aria-describedby="search-help"
+                autocomplete="off"
               >
-              <button id="clearSearch" class="clear-btn" style="display: none;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <button id="clearSearch" class="clear-btn" style="display: none;" aria-label="Clear search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
             </div>
+            <div id="search-help" class="sr-only">Search by vendor name, device name, vendor ID (4-digit hex), or device ID (4-digit hex)</div>
             
-            <div class="filter-options">
-              <div class="filter-group">
-                <label class="filter-label">Search Type:</label>
-                <div class="radio-group">
-                  <label class="radio-option">
-                    <input type="radio" name="searchType" value="all" checked>
-                    <span class="radio-custom"></span>
-                    All
-                  </label>
-                  <label class="radio-option">
-                    <input type="radio" name="searchType" value="vendor">
-                    <span class="radio-custom"></span>
-                    Vendor
-                  </label>
-                  <label class="radio-option">
-                    <input type="radio" name="searchType" value="device">
-                    <span class="radio-custom"></span>
-                    Device
-                  </label>
-                </div>
+            <fieldset class="filter-options">
+              <legend class="filter-label">Search Type:</legend>
+              <div class="radio-group" role="radiogroup" aria-label="Search filter options">
+                <label class="radio-option">
+                  <input type="radio" name="searchType" value="all" checked aria-describedby="filter-all-desc">
+                  <span class="radio-custom"></span>
+                  All
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="searchType" value="vendor" aria-describedby="filter-vendor-desc">
+                  <span class="radio-custom"></span>
+                  Vendor
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="searchType" value="device" aria-describedby="filter-device-desc">
+                  <span class="radio-custom"></span>
+                  Device
+                </label>
               </div>
-            </div>
+              <div class="sr-only">
+                <div id="filter-all-desc">Search both vendors and devices</div>
+                <div id="filter-vendor-desc">Search vendors only</div>
+                <div id="filter-device-desc">Search devices only</div>
+              </div>
+            </fieldset>
           </div>
         </div>
       </section>
 
       <!-- Search Results Statistics -->
-      <section class="search-stats">
+      <section class="search-stats" aria-label="Search results summary">
         <div class="container">
-          <div class="search-results-info">
+          <div class="search-results-info" role="status" aria-live="polite">
             <span id="searchResultsText">Showing all results</span>
-            <span class="results-count" id="searchResults">-</span>
+            <span class="results-count" id="searchResults" aria-label="Number of results">-</span>
           </div>
         </div>
       </section>
 
       <!-- Results Section -->
-      <section class="results-section">
+      <main class="results-section" role="main" aria-label="USB device search results">
         <div class="container">
+          <h2 class="sr-only">Search Results</h2>
+          
           <!-- Loading State -->
-          <div id="loadingState" class="loading-state">
-            <div class="spinner"></div>
+          <div id="loadingState" class="loading-state" role="status" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
             <p>Loading USB device data...</p>
           </div>
 
           <!-- Empty State -->
-          <div id="emptyState" class="empty-state" style="display: none;">
-            <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <div id="emptyState" class="empty-state" style="display: none;" role="status">
+            <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <circle cx="11" cy="11" r="8"/>
               <path d="m21 21-4.35-4.35"/>
             </svg>
@@ -141,14 +210,14 @@
           </div>
 
           <!-- Results List -->
-          <div id="resultsList" class="results-list" style="display: none;"></div>
+          <div id="resultsList" class="results-list" style="display: none;" role="region" aria-label="USB device results" aria-live="polite"></div>
 
           <!-- Pagination -->
-          <div id="pagination" class="pagination" style="display: none;">
+          <nav id="pagination" class="pagination" style="display: none;" role="navigation" aria-label="Search results pagination">
             <div class="pagination-left">
               <div class="page-size-selector">
                 <label for="pageSizeSelect">Items per page:</label>
-                <select id="pageSizeSelect" class="page-size-select">
+                <select id="pageSizeSelect" class="page-size-select" aria-label="Select number of items per page">
                   <option value="25">25</option>
                   <option value="50" selected>50</option>
                   <option value="100">100</option>
@@ -158,23 +227,24 @@
             </div>
             
             <div class="pagination-center">
-              <button id="prevPage" class="page-btn" disabled>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <button id="prevPage" class="page-btn" disabled aria-label="Go to previous page">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <polyline points="15,18 9,12 15,6"/>
                 </svg>
                 Previous
               </button>
               
               <div class="page-jump">
+                <label for="pageJumpInput" class="sr-only">Jump to page number</label>
                 <span>Page</span>
-                <input type="number" id="pageJumpInput" class="page-jump-input" min="1" value="1">
+                <input type="number" id="pageJumpInput" class="page-jump-input" min="1" value="1" aria-label="Page number">
                 <span>of</span>
-                <button id="pageJumpBtn" class="page-jump-btn">Go</button>
+                <button id="pageJumpBtn" class="page-jump-btn" aria-label="Jump to specified page">Go</button>
               </div>
               
-              <button id="nextPage" class="page-btn" disabled>
+              <button id="nextPage" class="page-btn" disabled aria-label="Go to next page">
                 Next
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <polyline points="9,18 15,12 9,6"/>
                 </svg>
               </button>
@@ -182,12 +252,12 @@
             
             <div class="pagination-right">
               <div class="page-info">
-                <span id="pageInfo">Page 1 of 1</span>
+                <span id="pageInfo" aria-live="polite">Page 1 of 1</span>
               </div>
             </div>
-          </div>
+          </nav>
         </div>
-      </section>
+      </main>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
