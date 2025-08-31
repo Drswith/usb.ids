@@ -269,7 +269,7 @@ function updateStats(): void {
 // 版本信息相关函数
 async function loadVersionInfo(): Promise<void> {
   try {
-    const response = await fetch('/usb.ids.version.json')
+    const response = await fetch(`${import.meta.env.BASE_URL}usb.ids.version.json`)
     if (response.ok) {
       versionInfo = await response.json() as VersionInfo
       updateVersionDisplay()

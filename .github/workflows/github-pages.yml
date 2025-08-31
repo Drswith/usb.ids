@@ -41,6 +41,15 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install
+
+      # 拷贝 usb.ids、usb.ids.json、usb.ids.version.json 到 public 文件夹
+      - name: Copy usb.ids.json
+        run: cp usb.ids.json public/usb.ids.json
+      - name: Copy usb.ids.version.json
+        run: cp usb.ids.version.json public/usb.ids.version.json
+      - name: Copy usb.ids
+        run: cp usb.ids public/usb.ids
+
       - name: Build
         run: pnpm run build
         env:
