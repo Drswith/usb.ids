@@ -140,6 +140,12 @@ jobs:
           echo "device_count=${DEVICE_COUNT}" >> $GITHUB_OUTPUT
           echo "update_time=${UPDATE_TIME}" >> $GITHUB_OUTPUT
 
+      - name: Generate Changelog
+        if: steps.check-update.outputs.needs_update == 'true'
+        run: pnpm dlx changelogithub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release
         if: steps.check-update.outputs.needs_update == 'true'
         uses: softprops/action-gh-release@v2
