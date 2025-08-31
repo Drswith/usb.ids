@@ -1,4 +1,5 @@
-import type { UsbIdsData } from './typing'
+import type { UsbIdsData, VersionInfo } from './typing'
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import http from 'node:http'
 import https from 'node:https'
@@ -161,11 +162,29 @@ export async function fetchUsbIdsData(
   fallbackFile: string,
   root: string,
   verbose = true,
-): Promise<{ data: UsbIdsData, source: 'api' | 'fallback' }> {
+  forceUpdate = false,
+): Promise<{ data: UsbIdsData, source: 'api' | 'fallback', versionInfo: VersionInfo }> {
   const startTime = Date.now()
+  const versionFilePath = path.resolve(root, 'usb.ids.version.json')
 
   try {
     startWithTime('开始获取USB设备数据...', verbose)
+
+    // 检查现有版本信息
+    const existingVersion = loadVersionInfo(versionFilePath)
+    if (existingVersion && verbose) {
+      logWithTime(`当前版本: ${existingVersion.version}, 获取时间: ${existingVersion.fetchTimeFormatted}`, verbose)
+    }
+
+    // 检查是否需要更新
+    if (!shouldUpdate(existingVersion, forceUpdate)) {
+      logWithTime('当前版本仍在有效期内，跳过更新', verbose)
+      const fallbackPath = path.resolve(root, fallbackFile)
+      if (fs.existsSync(fallbackPath)) {
+        const data = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'))
+        return { data, source: 'fallback', versionInfo: existingVersion! }
+      }
+    }
 
     let usbIdsContent: string | null = null
     const downloadStartTime = Date.now()
@@ -185,8 +204,22 @@ export async function fetchUsbIdsData(
 
     let data: UsbIdsData
     let source: 'api' | 'fallback'
+    let rawContent: string
 
     if (usbIdsContent) {
+      // 检查内容是否有变化
+      if (existingVersion && !forceUpdate) {
+        const newHash = generateContentHash(usbIdsContent)
+        if (newHash === existingVersion.contentHash) {
+          logWithTime('远程内容未发生变化，使用现有数据', verbose)
+          const fallbackPath = path.resolve(root, fallbackFile)
+          if (fs.existsSync(fallbackPath)) {
+            const data = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'))
+            return { data, source: 'fallback', versionInfo: existingVersion }
+          }
+        }
+      }
+
       // 保存原始文件
       const rawFilePath = path.resolve(root, 'usb.ids')
       await saveRawUsbIdsFile(usbIdsContent, rawFilePath, verbose)
@@ -197,6 +230,7 @@ export async function fetchUsbIdsData(
       const parseTime = Date.now() - parseStartTime
       logWithTime(`解析完成，共 ${Object.keys(data).length} 个供应商 (耗时: ${parseTime}ms)`, verbose)
       source = 'api'
+      rawContent = usbIdsContent
     }
     else {
       warnWithTime('所有公共API都无法访问，使用本地fallback文件', verbose)
@@ -205,16 +239,24 @@ export async function fetchUsbIdsData(
         data = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'))
         logWithTime('使用本地fallback文件', verbose)
         source = 'fallback'
+        rawContent = JSON.stringify(data)
       }
       else {
         throw new Error('无法获取USB设备数据，本地fallback文件也不存在')
       }
     }
 
+    // 创建版本信息
+    const versionInfo = createVersionInfo(data, rawContent, source)
+
+    // 保存版本信息
+    await saveVersionInfo(versionInfo, versionFilePath, verbose)
+
     const totalTime = Date.now() - startTime
     logWithTime(`数据获取完成 (总耗时: ${totalTime}ms)`, verbose)
+    logWithTime(`版本: ${versionInfo.version}`, verbose)
 
-    return { data, source }
+    return { data, source, versionInfo }
   }
   catch (error) {
     errorWithTime(`获取USB设备数据失败: ${(error as Error).message}`)
@@ -245,4 +287,110 @@ export async function saveUsbIdsToFile(
     errorWithTime(`保存USB设备数据失败: ${(error as Error).message}`)
     throw error
   }
+}
+
+/**
+ * 生成内容的SHA256哈希值
+ */
+export function generateContentHash(content: string): string {
+  return crypto.createHash('sha256').update(content, 'utf8').digest('hex')
+}
+
+/**
+ * 格式化时间戳为可读格式
+ */
+export function formatDateTime(timestamp: number): string {
+  const date = new Date(timestamp)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZone: 'Asia/Shanghai',
+  })
+}
+
+/**
+ * 创建版本信息
+ */
+export function createVersionInfo(
+  data: UsbIdsData,
+  rawContent: string,
+  source: 'api' | 'fallback',
+): VersionInfo {
+  const now = Date.now()
+
+  const vendorCount = Object.keys(data).length
+  const deviceCount = Object.values(data).reduce((total, vendor) => {
+    return total + Object.keys(vendor.devices || {}).length
+  }, 0)
+
+  return {
+    fetchTime: now,
+    fetchTimeFormatted: formatDateTime(now),
+    contentHash: generateContentHash(rawContent),
+    source,
+    vendorCount,
+    deviceCount,
+    version: `v1.0.${Math.floor(now / 1000)}`,
+  }
+}
+
+/**
+ * 保存版本信息到文件
+ */
+export async function saveVersionInfo(
+  versionInfo: VersionInfo,
+  filePath: string,
+  verbose = true,
+): Promise<void> {
+  try {
+    const jsonContent = JSON.stringify(versionInfo, null, 2)
+    fs.writeFileSync(filePath, jsonContent, 'utf8')
+    successWithTime(`版本信息已保存到 ${filePath}`, verbose)
+  }
+  catch (error) {
+    errorWithTime(`保存版本信息失败: ${(error as Error).message}`)
+    throw error
+  }
+}
+
+/**
+ * 读取版本信息
+ */
+export function loadVersionInfo(filePath: string): VersionInfo | null {
+  try {
+    if (!fs.existsSync(filePath)) {
+      return null
+    }
+    const content = fs.readFileSync(filePath, 'utf8')
+    return JSON.parse(content) as VersionInfo
+  }
+  catch (error) {
+    warnWithTime(`读取版本信息失败: ${(error as Error).message}`)
+    return null
+  }
+}
+
+/**
+ * 检查是否需要更新（基于时间和哈希值）
+ */
+export function shouldUpdate(
+  versionInfo: VersionInfo | null,
+  forceUpdate = false,
+): boolean {
+  if (forceUpdate) {
+    return true
+  }
+
+  if (!versionInfo) {
+    return true
+  }
+
+  // 检查是否超过24小时（86400000毫秒）
+  const now = Date.now()
+  const dayInMs = 24 * 60 * 60 * 1000
+  return now - versionInfo.fetchTime >= dayInMs
 }

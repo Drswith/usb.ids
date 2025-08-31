@@ -3,15 +3,15 @@
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
-import { fetchUsbIdsData, saveUsbIdsToFile } from '../src/utils'
+import { fetchUsbIdsData, saveUsbIdsToFile } from '../plugins/plugin-usb-ids/utils'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(__dirname, '..')
 
 // 默认配置
 const DEFAULT_USB_IDS_URLS = [
-  'https://raw.githubusercontent.com/systemd/systemd/main/hwdb.d/usb.ids',
   'http://www.linux-usb.org/usb.ids',
+  'https://raw.githubusercontent.com/systemd/systemd/main/hwdb.d/usb.ids',
 ]
 
 const FALLBACK_FILE = 'usb.ids.json'
@@ -20,11 +20,18 @@ async function main() {
   try {
     console.log('🚀 开始获取最新的USB设备数据...')
 
-    const { data, source } = await fetchUsbIdsData(
+    // 检查命令行参数是否包含强制更新标志
+    const forceUpdate = process.argv.includes('--force') || process.argv.includes('-f')
+    if (forceUpdate) {
+      console.log('🔄 强制更新模式已启用')
+    }
+
+    const { data, source, versionInfo } = await fetchUsbIdsData(
       DEFAULT_USB_IDS_URLS,
       FALLBACK_FILE,
       projectRoot,
       true,
+      forceUpdate,
     )
 
     const outputPath = path.resolve(projectRoot, FALLBACK_FILE)
@@ -32,13 +39,14 @@ async function main() {
 
     console.log(`✅ USB设备数据获取完成！数据源: ${source === 'api' ? '远程API' : '本地fallback'}`)
 
-    // 输出统计信息
-    const vendorCount = Object.keys(data).length
-    const deviceCount = Object.values(data).reduce((total, vendor) => {
-      return total + Object.keys(vendor.devices || {}).length
-    }, 0)
+    // 输出版本信息
+    console.log('📋 版本信息:')
+    console.log(`   版本号: ${versionInfo.version}`)
+    console.log(`   获取时间: ${versionInfo.fetchTimeFormatted}`)
+    console.log(`   内容哈希: ${versionInfo.contentHash.substring(0, 16)}...`)
 
-    console.log(`📊 数据统计: ${vendorCount} 个供应商，${deviceCount} 个设备`)
+    // 输出统计信息
+    console.log(`📊 数据统计: ${versionInfo.vendorCount} 个供应商，${versionInfo.deviceCount} 个设备`)
 
     process.exit(0)
   }

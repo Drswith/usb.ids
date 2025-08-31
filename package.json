@@ -31,7 +31,8 @@
   "types": "./dist/index.d.ts",
   "files": [
     "usb.ids",
-    "usb.ids.json"
+    "usb.ids.json",
+    "usb.ids.version.json"
   ],
   "engines": {
     "node": ">=16"
@@ -43,6 +44,7 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "fetch-usb-ids": "tsx scripts/fetch-usb-ids.ts",
+    "version-info": "tsx scripts/version-info.ts",
     "release": "bumpp && pnpm publish",
     "start": "tsx src/index.ts",
     "test": "vitest run",
