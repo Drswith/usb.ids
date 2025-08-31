@@ -1,0 +1,81 @@
+{
+  "name": "usb.ids",
+  "type": "module",
+  "version": "1.0.1",
+  "packageManager": "pnpm@9.15.9",
+  "description": "A vite plugin to get USB IDs",
+  "author": "Drswith",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/Drswith",
+  "homepage": "https://github.com/Drswith/usb.ids#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Drswith/usb.ids.git"
+  },
+  "bugs": "https://github.com/Drswith/usb.ids/issues",
+  "keywords": [],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./client": {
+      "types": "./client.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "usb.ids.json"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "fetch-usb-ids": "tsx scripts/fetch-usb-ids.ts",
+    "release": "bumpp && pnpm publish",
+    "start": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepare": "simple-git-hooks",
+    "bumpp": "bumpp",
+    "lint-staged": "lint-staged"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^4.2.1",
+    "@antfu/ni": "^24.1.0",
+    "@antfu/utils": "^9.1.0",
+    "@types/node": "^22.13.10",
+    "@vue/tsconfig": "^0.7.0",
+    "bumpp": "^10.1.0",
+    "eslint": "9.23.0",
+    "eslint-plugin-format": "1.0.1",
+    "lint-staged": "^15.5.0",
+    "simple-git-hooks": "^2.11.1",
+    "tinyexec": "^0.3.2",
+    "tsdown": "^0.14.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.1",
+    "vitest": "^3.0.8",
+    "vitest-package-exports": "^0.1.1",
+    "yaml": "^2.7.0"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "nr lint-staged"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
+  }
+}

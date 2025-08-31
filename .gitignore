@@ -95,6 +95,9 @@ dist
 .temp
 .cache
 
+# USB device data file (generated during build)
+usb.ids.json
+
 # Sveltekit cache directory
 .svelte-kit/
 
@@ -137,3 +140,14 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+.cache
+.DS_Store
+.idea
+*.log
+*.tgz
+coverage
+dist
+lib-cov
+logs
+node_modules
+temp
