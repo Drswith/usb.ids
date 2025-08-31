@@ -41,17 +41,22 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install
+
+      - name: Generate USB.IDS data
+        run: |
+          pnpm run fetch-usb-ids
+          pnpm run version-info
+
       - name: Build
         run: pnpm run build
         env:
           VITE_BASE_PATH: /usb.ids/
-          # 拷贝 usb.ids、usb.ids.json、usb.ids.version.json 到 dist 文件夹
-      - name: Copy usb.ids.json
-        run: cp usb.ids.json dist/usb.ids.json
-      - name: Copy usb.ids.version.json
-        run: cp usb.ids.version.json dist/usb.ids.version.json
-      - name: Copy usb.ids
-        run: cp usb.ids dist/usb.ids
+
+      - name: Copy USB.IDS files to dist
+        run: |
+          cp usb.ids.json dist/usb.ids.json
+          cp usb.ids.version.json dist/usb.ids.version.json
+          cp usb.ids dist/usb.ids
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
