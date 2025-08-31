@@ -223,13 +223,6 @@ function showEmptyState(): void {
   elements.pagination.style.display = 'none'
 }
 
-function _showLoadingState(): void {
-  elements.loadingState.style.display = 'flex'
-  elements.emptyState.style.display = 'none'
-  elements.resultsList.style.display = 'none'
-  elements.pagination.style.display = 'none'
-}
-
 function hideLoadingState(): void {
   elements.loadingState.style.display = 'none'
 }
