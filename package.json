@@ -1,7 +1,7 @@
 {
   "name": "usb.ids",
   "type": "module",
-  "version": "0.0.2",
+  "version": "1.0.1756665980448",
   "packageManager": "pnpm@9.15.9",
   "description": "A vite plugin to get USB IDs",
   "author": "Drswith",
@@ -45,6 +45,7 @@
     "lint:fix": "eslint --fix",
     "fetch-usb-ids": "tsx scripts/fetch-usb-ids.ts",
     "version-info": "tsx scripts/version-info.ts",
+    "check-update": "tsx scripts/check-update.ts",
     "release": "bumpp && pnpm publish",
     "start": "tsx src/index.ts",
     "test": "vitest run",

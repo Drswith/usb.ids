@@ -21,7 +21,7 @@ async function main() {
 
     console.log('📋 USB.IDS 版本信息')
     console.log('='.repeat(50))
-    console.log(`版本号: ${versionInfo.version}`)
+    console.log(`版本号: v${versionInfo.version}`)
     console.log(`获取时间: ${versionInfo.fetchTimeFormatted}`)
     console.log(`数据源: ${versionInfo.source === 'api' ? '远程API' : '本地fallback'}`)
     console.log(`供应商数量: ${versionInfo.vendorCount}`)

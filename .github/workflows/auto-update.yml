@@ -1,0 +1,147 @@
+name: Auto Update USB.IDS
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+on:
+  schedule:
+    # 每天UTC 0点执行
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Get current version info
+        id: current-version
+        run: |
+          if [ -f "usb.ids.version.json" ]; then
+            CURRENT_HASH=$(jq -r '.contentHash' usb.ids.version.json)
+            echo "current_hash=$CURRENT_HASH" >> $GITHUB_OUTPUT
+            echo "has_version=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_version=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fetch latest USB.IDS data
+        run: pnpm run fetch-usb-ids --force
+
+      - name: Get new version info
+        id: new-version
+        run: |
+          NEW_HASH=$(jq -r '.contentHash' usb.ids.version.json)
+          NEW_VERSION=$(jq -r '.version' usb.ids.version.json)
+          echo "new_hash=$NEW_HASH" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if update needed
+        id: check-update
+        run: |
+          if [ "${{ steps.current-version.outputs.has_version }}" = "false" ] || [ "${{ steps.current-version.outputs.current_hash }}" != "${{ steps.new-version.outputs.new_hash }}" ]; then
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+            echo "USB.IDS data has changed, update needed"
+          else
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+            echo "USB.IDS data unchanged, no update needed"
+          fi
+
+      - name: Update version and regenerate data
+        if: steps.check-update.outputs.needs_update == 'true'
+        run: |
+          # 重新生成版本信息（会自动更新package.json版本）
+          pnpm run fetch-usb-ids --force
+
+      - name: Build project
+        if: steps.check-update.outputs.needs_update == 'true'
+        run: pnpm run build
+
+      - name: Commit and tag
+        if: steps.check-update.outputs.needs_update == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # 获取新的版本号（从生成的版本文件中读取）
+          NEW_VERSION=$(jq -r '.version' usb.ids.version.json)
+          echo "NEW_VERSION=v${NEW_VERSION}" >> $GITHUB_ENV
+
+          # 提交所有变更
+          git add .
+          git commit -m "chore: update USB.IDS data to v${NEW_VERSION}"
+
+          # 创建标签（添加v前缀）
+          git tag "v${NEW_VERSION}"
+
+          # 推送变更和标签
+          git push origin main
+          git push origin "v${NEW_VERSION}"
+
+      - name: Get release info
+        if: steps.check-update.outputs.needs_update == 'true'
+        id: release-info
+        run: |
+          VENDOR_COUNT=$(jq -r '.vendorCount' usb.ids.version.json)
+          DEVICE_COUNT=$(jq -r '.deviceCount' usb.ids.version.json)
+          UPDATE_TIME=$(jq -r '.fetchTimeFormatted' usb.ids.version.json)
+
+          echo "vendor_count=${VENDOR_COUNT}" >> $GITHUB_OUTPUT
+          echo "device_count=${DEVICE_COUNT}" >> $GITHUB_OUTPUT
+          echo "update_time=${UPDATE_TIME}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        if: steps.check-update.outputs.needs_update == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.NEW_VERSION }}
+          release_name: Release ${{ env.NEW_VERSION }}
+          body: |
+            🔄 自动更新USB.IDS数据
+
+            📊 数据统计:
+            - 供应商数量: ${{ steps.release-info.outputs.vendor_count }}
+            - 设备数量: ${{ steps.release-info.outputs.device_count }}
+
+            🕒 更新时间: ${{ steps.release-info.outputs.update_time }}
+            🔗 数据来源: http://www.linux-usb.org/usb.ids
+          draft: false
+          prerelease: false
+
+      - name: Publish to npm
+        if: steps.check-update.outputs.needs_update == 'true'
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check-update.outputs.needs_update }}" = "true" ]; then
+            echo "✅ USB.IDS data updated and new version released"
+            echo "📦 New version: $(jq -r '.version' package.json)"
+            echo "🔗 Release: https://github.com/${{ github.repository }}/releases/tag/v$(jq -r '.version' package.json)"
+          else
+            echo "ℹ️ No update needed - USB.IDS data is already up to date"
+          fi

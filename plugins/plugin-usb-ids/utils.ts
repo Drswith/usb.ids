@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
+import process from 'node:process'
 import { pluginName } from './plugin'
 
 /**
@@ -254,7 +255,7 @@ export async function fetchUsbIdsData(
 
     const totalTime = Date.now() - startTime
     logWithTime(`数据获取完成 (总耗时: ${totalTime}ms)`, verbose)
-    logWithTime(`版本: ${versionInfo.version}`, verbose)
+    logWithTime(`版本: v${versionInfo.version}`, verbose)
 
     return { data, source, versionInfo }
   }
@@ -297,19 +298,16 @@ export function generateContentHash(content: string): string {
 }
 
 /**
- * 格式化时间戳为可读格式
+ * 格式化时间戳为可读格式（UTC时间）
  */
 export function formatDateTime(timestamp: number): string {
   const date = new Date(timestamp)
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZone: 'Asia/Shanghai',
-  })
+  return date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC')
+}
+
+export function formatDateTimeUTC(timestamp: number): string {
+  const date = new Date(timestamp)
+  return date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, '')
 }
 
 /**
@@ -321,6 +319,20 @@ export function createVersionInfo(
   source: 'api' | 'fallback',
 ): VersionInfo {
   const now = Date.now()
+  const version = `1.0.${now}`
+
+  // 更新package.json的version字段
+  try {
+    const packageJsonPath = path.resolve(process.cwd(), 'package.json')
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+      packageJson.version = version
+      fs.writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`)
+    }
+  }
+  catch (error) {
+    console.warn('Failed to update package.json version:', error)
+  }
 
   const vendorCount = Object.keys(data).length
   const deviceCount = Object.values(data).reduce((total, vendor) => {
@@ -334,7 +346,7 @@ export function createVersionInfo(
     source,
     vendorCount,
     deviceCount,
-    version: `v1.0.${Math.floor(now / 1000)}`,
+    version,
   }
 }
 

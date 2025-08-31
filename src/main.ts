@@ -1,4 +1,4 @@
-import type { UsbDevice, UsbIdsData, UsbVendor } from '../plugins/plugin-usb-ids/typing'
+import type { UsbDevice, UsbIdsData, UsbVendor, VersionInfo } from '../plugins/plugin-usb-ids/typing'
 import './styles.css'
 
 // 类型定义
@@ -18,6 +18,8 @@ let currentData: UsbIdsData = {}
 let currentResults: DeviceResult[] = []
 let currentPage = 1
 let itemsPerPage = 50
+let versionInfo: VersionInfo | null = null
+let countdownInterval: NodeJS.Timeout | null = null
 
 // DOM元素（延迟初始化）
 let elements: {
@@ -38,6 +40,10 @@ let elements: {
   pageSizeSelect: HTMLSelectElement
   pageJumpInput: HTMLInputElement
   pageJumpBtn: HTMLButtonElement
+  versionNumber: HTMLElement
+  fetchTime: HTMLElement
+  nextUpdate: HTMLElement
+  countdown: HTMLElement
 }
 
 // 工具函数
@@ -267,6 +273,95 @@ function updateStats(): void {
   }
 }
 
+// 版本信息相关函数
+async function loadVersionInfo(): Promise<void> {
+  try {
+    const response = await fetch('/usb.ids.version.json')
+    if (response.ok) {
+      versionInfo = await response.json() as VersionInfo
+      updateVersionDisplay()
+      startCountdown()
+    }
+  }
+  catch (error) {
+    console.warn('Failed to load version info:', error)
+  }
+}
+
+function updateVersionDisplay(): void {
+  if (!versionInfo)
+    return
+
+  // 显示版本号（带v前缀）
+  elements.versionNumber.textContent = `v${versionInfo.version}`
+
+  // 显示获取时间（转换为本地时间）
+  const fetchDate = new Date(versionInfo.fetchTime)
+  elements.fetchTime.textContent = fetchDate.toLocaleString()
+
+  // 计算下次更新时间（下一个UTC 0点）
+  const now = new Date()
+  const nextUpdateTime = new Date(now)
+  nextUpdateTime.setUTCDate(nextUpdateTime.getUTCDate() + 1)
+  nextUpdateTime.setUTCHours(0, 0, 0, 0)
+  elements.nextUpdate.textContent = nextUpdateTime.toLocaleString()
+}
+
+function startCountdown(): void {
+  if (!versionInfo)
+    return
+
+  // 清除之前的倒计时，防止重复创建定时器
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
+
+  function updateCountdown(): void {
+    if (!versionInfo)
+      return
+
+    const now = new Date()
+    const nextUpdateTime = new Date(now)
+    nextUpdateTime.setUTCDate(nextUpdateTime.getUTCDate() + 1)
+    nextUpdateTime.setUTCHours(0, 0, 0, 0)
+    const timeLeft = nextUpdateTime.getTime() - now.getTime()
+
+    if (timeLeft <= 0) {
+      elements.countdown.textContent = '需要更新'
+      elements.countdown.classList.add('urgent')
+      if (countdownInterval) {
+        clearInterval(countdownInterval)
+        countdownInterval = null
+      }
+      return
+    }
+
+    // 计算剩余时间
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60))
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000)
+
+    // 格式化显示
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    elements.countdown.textContent = timeString
+
+    // 如果剩余时间少于1小时，添加紧急样式
+    if (timeLeft < 60 * 60 * 1000) {
+      elements.countdown.classList.add('urgent')
+    }
+    else {
+      elements.countdown.classList.remove('urgent')
+    }
+  }
+
+  // 立即更新一次
+  updateCountdown()
+
+  // 每秒更新倒计时
+  countdownInterval = setInterval(updateCountdown, 1000)
+}
+
 // 事件处理函数
 function handleSearch(): void {
   const query = elements.searchInput.value.trim()
@@ -383,6 +478,10 @@ async function initializeApp(): Promise<void> {
       pageSizeSelect: document.getElementById('pageSizeSelect') as HTMLSelectElement,
       pageJumpInput: document.getElementById('pageJumpInput') as HTMLInputElement,
       pageJumpBtn: document.getElementById('pageJumpBtn') as HTMLButtonElement,
+      versionNumber: document.getElementById('versionNumber') as HTMLElement,
+      fetchTime: document.getElementById('fetchTime') as HTMLElement,
+      nextUpdate: document.getElementById('nextUpdate') as HTMLElement,
+      countdown: document.getElementById('countdown') as HTMLElement,
     }
 
     // 异步加载USB IDs数据
@@ -392,6 +491,9 @@ async function initializeApp(): Promise<void> {
 
     // 设置数据
     currentData = usbIdsData as UsbIdsData
+
+    // 加载版本信息
+    await loadVersionInfo()
 
     // 从URL参数恢复状态
     const urlParams = getUrlParams()
@@ -453,6 +555,14 @@ async function initializeApp(): Promise<void> {
   })
 }
 
+// 清理函数，防止内存泄露
+function cleanup(): void {
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+    countdownInterval = null
+  }
+}
+
 // 启动应用
 if (globalThis.window) {
   // 等待DOM加载完成
@@ -462,4 +572,25 @@ if (globalThis.window) {
   else {
     initializeApp()
   }
+
+  // 页面卸载时清理定时器
+  window.addEventListener('beforeunload', cleanup)
+  window.addEventListener('unload', cleanup)
+
+  // 页面隐藏时暂停定时器，显示时恢复（优化性能）
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // 页面隐藏时清除定时器
+      if (countdownInterval) {
+        clearInterval(countdownInterval)
+        countdownInterval = null
+      }
+    }
+    else {
+      // 页面显示时重新启动倒计时
+      if (versionInfo) {
+        startCountdown()
+      }
+    }
+  })
 }

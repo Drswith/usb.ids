@@ -138,6 +138,71 @@ html {
   font-weight: 500;
 }
 
+/* 版本信息区域样式 */
+.version-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 0;
+}
+
+.version-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.version-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.version-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.version-value {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.version-value.countdown {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.version-value.countdown.urgent {
+  color: var(--error-color);
+  font-weight: 600;
+  animation: urgentPulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes urgentPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .version-info {
+    gap: 1rem;
+  }
+  
+  .version-item {
+    font-size: 0.8rem;
+  }
+}
+
 /* 搜索区域样式 */
 .search-section {
   padding: 2rem 0;
