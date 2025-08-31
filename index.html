@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>USB IDs 查询工具</title>
+    <title>List of USB ID's - USB IDs Query Tool</title>
 
   </head>
   <body>
@@ -22,47 +22,47 @@
                 </svg>
                 USB IDs
               </h1>
-              <p class="subtitle">快速查找USB设备供应商和产品信息的数据库</p>
+              <p class="subtitle">A database for quickly finding USB device vendor and product information</p>
             </div>
             <div class="header-stats">
               <div class="header-stat">
                 <div class="stat-number" id="headerTotalVendors">-</div>
-                <div class="stat-label">供应商</div>
+                <div class="stat-label">Vendors</div>
               </div>
               <div class="header-stat">
                 <div class="stat-number" id="headerTotalDevices">-</div>
-                <div class="stat-label">设备</div>
+                <div class="stat-label">Devices</div>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <!-- 版本信息区域 -->
+      <!-- Version Information Section -->
       <section class="version-section">
         <div class="container">
           <div class="version-info">
             <div class="version-item">
-              <span class="version-label">版本:</span>
+              <span class="version-label">Version:</span>
               <span class="version-value" id="versionNumber">-</span>
             </div>
             <div class="version-item">
-              <span class="version-label">获取时间:</span>
+              <span class="version-label">Fetch Time:</span>
               <span class="version-value" id="fetchTime">-</span>
             </div>
             <div class="version-item">
-              <span class="version-label">下次更新:</span>
+              <span class="version-label">Next Update:</span>
               <span class="version-value" id="nextUpdate">-</span>
             </div>
             <div class="version-item">
-              <span class="version-label">倒计时:</span>
+              <span class="version-label">Countdown:</span>
               <span class="version-value countdown" id="countdown">-</span>
             </div>
           </div>
          </div>
        </section>
  
-       <!-- 搜索区域 -->
+       <!-- Search Section -->
       <section class="search-section">
         <div class="container">
           <div class="search-container">
@@ -74,7 +74,7 @@
               <input 
                 type="text" 
                 id="searchInput" 
-                placeholder="搜索供应商名称、设备名称、供应商ID或设备ID..."
+                placeholder="Search vendor name, device name, vendor ID or device ID..."
                 class="search-input"
               >
               <button id="clearSearch" class="clear-btn" style="display: none;">
@@ -87,22 +87,22 @@
             
             <div class="filter-options">
               <div class="filter-group">
-                <label class="filter-label">搜索类型:</label>
+                <label class="filter-label">Search Type:</label>
                 <div class="radio-group">
                   <label class="radio-option">
                     <input type="radio" name="searchType" value="all" checked>
                     <span class="radio-custom"></span>
-                    全部
+                    All
                   </label>
                   <label class="radio-option">
                     <input type="radio" name="searchType" value="vendor">
                     <span class="radio-custom"></span>
-                    供应商
+                    Vendor
                   </label>
                   <label class="radio-option">
                     <input type="radio" name="searchType" value="device">
                     <span class="radio-custom"></span>
-                    设备
+                    Device
                   </label>
                 </div>
               </div>
@@ -111,43 +111,43 @@
         </div>
       </section>
 
-      <!-- 搜索结果统计 -->
+      <!-- Search Results Statistics -->
       <section class="search-stats">
         <div class="container">
           <div class="search-results-info">
-            <span id="searchResultsText">显示所有结果</span>
+            <span id="searchResultsText">Showing all results</span>
             <span class="results-count" id="searchResults">-</span>
           </div>
         </div>
       </section>
 
-      <!-- 结果区域 -->
+      <!-- Results Section -->
       <section class="results-section">
         <div class="container">
-          <!-- 加载状态 -->
+          <!-- Loading State -->
           <div id="loadingState" class="loading-state">
             <div class="spinner"></div>
-            <p>正在加载USB设备数据...</p>
+            <p>Loading USB device data...</p>
           </div>
 
-          <!-- 空状态 -->
+          <!-- Empty State -->
           <div id="emptyState" class="empty-state" style="display: none;">
             <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="11" cy="11" r="8"/>
               <path d="m21 21-4.35-4.35"/>
             </svg>
-            <h3>未找到匹配结果</h3>
-            <p>请尝试使用不同的关键词或调整搜索条件</p>
+            <h3>No matching results found</h3>
+            <p>Please try using different keywords or adjust your search criteria</p>
           </div>
 
-          <!-- 结果列表 -->
+          <!-- Results List -->
           <div id="resultsList" class="results-list" style="display: none;"></div>
 
-          <!-- 分页 -->
+          <!-- Pagination -->
           <div id="pagination" class="pagination" style="display: none;">
             <div class="pagination-left">
               <div class="page-size-selector">
-                <label for="pageSizeSelect">每页显示:</label>
+                <label for="pageSizeSelect">Items per page:</label>
                 <select id="pageSizeSelect" class="page-size-select">
                   <option value="25">25</option>
                   <option value="50" selected>50</option>
@@ -162,18 +162,18 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <polyline points="15,18 9,12 15,6"/>
                 </svg>
-                上一页
+                Previous
               </button>
               
               <div class="page-jump">
-                <span>第</span>
+                <span>Page</span>
                 <input type="number" id="pageJumpInput" class="page-jump-input" min="1" value="1">
-                <span>页</span>
-                <button id="pageJumpBtn" class="page-jump-btn">跳转</button>
+                <span>of</span>
+                <button id="pageJumpBtn" class="page-jump-btn">Go</button>
               </div>
               
               <button id="nextPage" class="page-btn" disabled>
-                下一页
+                Next
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <polyline points="9,18 15,12 9,6"/>
                 </svg>
@@ -182,7 +182,7 @@
             
             <div class="pagination-right">
               <div class="page-info">
-                <span id="pageInfo">第 1 页，共 1 页</span>
+                <span id="pageInfo">Page 1 of 1</span>
               </div>
             </div>
           </div>

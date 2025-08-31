@@ -193,7 +193,7 @@ function renderResults(results: DeviceResult[], page: number = 1): void {
         <div class="device-header">
           <div class="device-info">
             <div class="device-id-section">
-              <span class="id-label">设备ID:</span>
+              <span class="id-label">Device ID:</span>
               <span class="device-id">${deviceIdHtml}</span>
             </div>
             <div class="device-name">${deviceNameHtml}</div>
@@ -201,7 +201,7 @@ function renderResults(results: DeviceResult[], page: number = 1): void {
         </div>
         <div class="vendor-info">
           <div class="vendor-details">
-            <span class="id-label">供应商:</span>
+            <span class="id-label">Vendor:</span>
             <span class="vendor-id">${vendorIdHtml}</span>
             <span class="vendor-name">${vendorNameHtml}</span>
           </div>
@@ -236,7 +236,7 @@ function updatePagination(totalItems: number, currentPageNum: number): void {
   }
 
   elements.pagination.style.display = 'flex'
-  elements.pageInfo.textContent = `第 ${currentPageNum} 页，共 ${totalPages} 页`
+  elements.pageInfo.textContent = `Page ${currentPageNum} of ${totalPages}`
 
   elements.prevPage.disabled = currentPageNum <= 1
   elements.nextPage.disabled = currentPageNum >= totalPages
@@ -259,10 +259,10 @@ function updateStats(): void {
   // 更新搜索结果文本，重点展示设备数量
   const query = elements.searchInput.value.trim()
   if (query) {
-    elements.searchResultsText.textContent = `找到 ${currentResults.length.toLocaleString()} 个设备`
+    elements.searchResultsText.textContent = `Found ${currentResults.length.toLocaleString()} devices`
   }
   else {
-    elements.searchResultsText.textContent = `显示所有 ${deviceCount.toLocaleString()} 个设备`
+    elements.searchResultsText.textContent = `Showing all ${deviceCount.toLocaleString()} devices`
   }
 }
 
@@ -321,7 +321,7 @@ function startCountdown(): void {
     const timeLeft = nextUpdateTime.getTime() - now.getTime()
 
     if (timeLeft <= 0) {
-      elements.countdown.textContent = '需要更新'
+      elements.countdown.textContent = 'Update needed'
       elements.countdown.classList.add('urgent')
       if (countdownInterval) {
         clearInterval(countdownInterval)
