@@ -235,12 +235,23 @@ html {
 
 .search-input {
   width: 100%;
-  padding: 1rem 1rem 1rem 3rem;
+  padding: 1rem 3rem 1rem 3rem;
   border: 2px solid var(--border-color);
   border-radius: var(--radius-lg);
   font-size: 1rem;
   background: var(--surface-color);
   transition: var(--transition);
+}
+
+/* Hide native search input clear button */
+.search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .search-input:focus {
@@ -277,6 +288,7 @@ html {
   justify-content: center;
   width: 2rem;
   height: 2rem;
+  z-index: 10;
 }
 
 .clear-btn:hover {
