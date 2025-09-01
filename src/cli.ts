@@ -1,22 +1,22 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 
 /**
- * USB设备数据更新脚本
- * 利用src模块的接口实现文件读写和版本管理
+ * USB设备数据CLI工具
+ * 提供命令行接口来管理USB设备数据
  */
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import * as process from 'node:process'
-import { USB_IDS_SOURCE } from '../src/config'
-import { fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile, saveVersionInfo } from '../src/core'
-import { shouldUpdate } from '../src/parser'
-import { logger } from '../src/utils'
+import { USB_IDS_SOURCE } from './config'
+import { fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile, saveVersionInfo } from './core'
+import { shouldUpdate } from './parser'
+import { logger } from './utils'
 
 /**
  * 主要的数据更新函数
  */
-async function updateUsbIdsData(forceUpdate = false): Promise<void> {
+export async function updateUsbIdsData(forceUpdate = false): Promise<void> {
   try {
     const root = process.cwd()
     const fallbackFile = path.join(root, 'usb.ids')
@@ -73,7 +73,7 @@ async function updateUsbIdsData(forceUpdate = false): Promise<void> {
 /**
  * 显示当前版本信息
  */
-function showVersionInfo(): void {
+export function showVersionInfo(): void {
   try {
     const root = process.cwd()
     const versionFile = path.join(root, 'usb.ids.version.json')
@@ -105,7 +105,7 @@ function showVersionInfo(): void {
 /**
  * 检查是否需要更新
  */
-function checkUpdate(): void {
+export function checkUpdate(): void {
   try {
     const root = process.cwd()
     const versionFile = path.join(root, 'usb.ids.version.json')
@@ -136,9 +136,37 @@ function checkUpdate(): void {
 }
 
 /**
- * 主函数 - 处理命令行参数
+ * 显示帮助信息
  */
-async function main(): Promise<void> {
+export function showHelp(): void {
+  console.log(`
+USB设备数据管理工具
+
+用法:
+  usb-ids <command> [options]
+  或者: node bin/cli.js <command> [options]
+
+命令:
+  update, fetch    更新USB设备数据
+  version, info    显示当前版本信息
+  check           检查是否需要更新
+  help            显示此帮助信息
+
+选项:
+  --force         强制更新（忽略时间检查）
+
+示例:
+  usb-ids update
+  usb-ids update --force
+  usb-ids version
+  usb-ids check
+`)
+}
+
+/**
+ * CLI主函数 - 处理命令行参数
+ */
+export async function runCli(): Promise<void> {
   const args = process.argv.slice(2)
   const command = args[0]
 
@@ -160,27 +188,7 @@ async function main(): Promise<void> {
     case 'help':
     case '--help':
     case '-h':
-      console.log(`
-USB设备数据管理工具
-
-用法:
-  tsx scripts/update-data.ts <command> [options]
-
-命令:
-  update, fetch    更新USB设备数据
-  version, info    显示当前版本信息
-  check           检查是否需要更新
-  help            显示此帮助信息
-
-选项:
-  --force         强制更新（忽略时间检查）
-
-示例:
-  tsx scripts/update-data.ts update
-  tsx scripts/update-data.ts update --force
-  tsx scripts/update-data.ts version
-  tsx scripts/update-data.ts check
-`)
+      showHelp()
       break
 
     default:
@@ -197,12 +205,10 @@ USB设备数据管理工具
   }
 }
 
-// 运行主函数
+// 当直接运行此文件时执行CLI
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
-    logger.error(`脚本执行失败: ${error.message}`)
+  runCli().catch((error) => {
+    logger.error(`CLI执行失败: ${error.message}`)
     process.exit(1)
   })
 }
-
-export { checkUpdate, showVersionInfo, updateUsbIdsData }

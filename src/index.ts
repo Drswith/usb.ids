@@ -1,5 +1,5 @@
-// 导出配置
-export * from './config'
+export * as cli from './cli'
+export * as config from './config'
 
 // 导出核心业务逻辑
 export * from './core'

@@ -22,5 +22,14 @@ export default defineConfig((_) => {
       dts: false,
       format: 'cjs',
     },
+    // 命令行工具
+    {
+      ...share,
+      platform: 'node',
+      entry: ['src/cli.ts'],
+      outDir: 'bin',
+      format: 'cjs',
+      dts: false,
+    },
   ]
 })
