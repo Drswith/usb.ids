@@ -143,10 +143,11 @@ async function startWebServer(port = 3000): Promise<void> {
   try {
     const root = process.cwd()
     let distDir = path.join(root, 'node_modules', 'usb.ids', 'dist', 'ui')
-
+    let isProd = true
     if (!fs.existsSync(distDir)) {
       logger.warn('node_modules/usb-ids/dist/ui directory does not exist, trying to use dist/ui instead')
       distDir = path.join(root, 'dist', 'ui')
+      isProd = false
     }
 
     // 检查dist/ui目录是否存在
@@ -183,7 +184,10 @@ async function startWebServer(port = 3000): Promise<void> {
       // 处理 USB 数据文件
       if (filePath.includes(USB_IDS_JSON_FILE) || filePath.includes(USB_IDS_VERSION_JSON_FILE)) {
         // USB 数据文件与 dist 同级目录
-        filePath = path.join(root, req.url!.replace(UI_LOCAL_BASE_URL, ''))
+        filePath
+        = isProd
+            ? path.join(root, 'node_modules', 'usb.ids', req.url!.replace(UI_LOCAL_BASE_URL, ''))
+            : path.join(root, req.url!.replace(UI_LOCAL_BASE_URL, ''))
         console.log('json file path', filePath)
       }
 
