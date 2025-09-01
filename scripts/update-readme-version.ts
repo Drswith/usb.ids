@@ -61,7 +61,9 @@ function updateReadmeVersion(): void {
 
     // 构建新的版本信息块
     const newVersionBlock = `
+
 > **📦 Latest Release**  
+>  
 > **Version:** \`${version}\`  
 > **Updated:** \`${updateTime}\`  
 > **Status:** ✅ Auto-updated daily
