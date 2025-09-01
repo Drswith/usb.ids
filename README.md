@@ -11,6 +11,7 @@ An automated USB device ID database project that provides a CLI tool and data fi
 ## 🚀 Features
 
 - **CLI Tool**: Command-line interface for managing USB device data
+- **Modern API Library**: Async-first API with TypeScript support and pure function tools
 - **Auto Update**: Automatically checks and fetches the latest USB.IDS data every 24 hours
 - **Multi-format Support**: Provides both raw format and JSON format data files
 - **Web Interface**: Built-in web server for browsing and searching USB device data
@@ -18,6 +19,9 @@ An automated USB device ID database project that provides a CLI tool and data fi
 - **GitHub Pages**: Provides online viewing interface
 - **Version Management**: Smart version control based on content hash
 - **Data Statistics**: Provides vendor and device count statistics
+- **Environment Compatibility**: Works in both Node.js and browser environments
+- **Advanced Filtering**: Support for string, function, and object-based filtering
+- **Smart Search**: Intelligent search with relevance scoring and priority ranking
 
 ## 📦 Installation
 
@@ -97,6 +101,86 @@ const versionInfo = JSON.parse(
     'utf8'
   )
 )
+```
+
+### Using the API Library
+
+The package provides a modern async API for accessing USB device data:
+
+```javascript
+import {
+  filterDevices,
+  filterVendors,
+  getDevice,
+  getDevices,
+  getUsbData,
+  getVendor,
+  getVendors,
+  searchDevices,
+  searchInData
+} from 'usb.ids'
+
+// Get all vendors
+const allVendors = await getVendors()
+
+// Get vendors with filter
+const appleVendors = await getVendors('Apple')
+const specificVendor = await getVendor('05ac')
+
+// Get devices for a vendor
+const appleDevices = await getDevices('05ac')
+const filteredDevices = await getDevices('05ac', 'iPhone')
+
+// Get a specific device
+const device = await getDevice('05ac', '12a8')
+
+// Search devices across all vendors
+const searchResults = await searchDevices('iPhone')
+
+// Get complete USB data
+const usbData = await getUsbData()
+
+// Pure function tools for processing existing data
+const filteredVendors = filterVendors(usbData, 'Apple')
+const searchResults2 = searchInData(usbData, 'mouse')
+```
+
+#### Filter Options
+
+Filters can be strings, functions, or objects:
+
+```javascript
+// String filter (searches in names and IDs)
+const vendors1 = await getVendors('Apple')
+
+// Function filter
+const vendors2 = await getVendors(vendor => vendor.name.includes('Tech'))
+
+// Object filter
+const vendors3 = await getVendors({
+  id: '05ac',
+  name: 'Apple',
+  search: 'apple' // searches in both name and ID
+})
+
+// Device filters work similarly
+const devices1 = await getDevices('05ac', 'iPhone')
+const devices2 = await getDevices('05ac', device => device.devname.includes('Pro'))
+const devices3 = await getDevices('05ac', {
+  id: '12a8',
+  name: 'iPhone',
+  search: 'phone'
+})
+```
+
+#### Force Update
+
+All async functions accept an optional `forceUpdate` parameter:
+
+```javascript
+// Force fetch fresh data from remote source
+const vendors = await getVendors(null, true)
+const device = await getDevice('05ac', '12a8', true)
 ```
 
 ### Direct access to data files

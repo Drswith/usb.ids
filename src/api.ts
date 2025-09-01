@@ -1,16 +1,16 @@
 /**
- * USB 设备数据 API 模块
+ * USB Device Data API Module
  *
- * 数据获取策略：
- * 1. 优先使用本地 USB JSON 文件
- * 2. 如果本地文件不存在或过期，则从远程 URL 获取数据
- * 3. 获取后的数据会被缓存到本地，供下次使用
- * 4. 无论 Node.js 还是浏览器环境都遵循相同的策略
+ * Data acquisition strategy:
+ * 1. Prioritize local USB JSON files
+ * 2. If local files don't exist or are expired, fetch data from remote URLs
+ * 3. Downloaded data will be cached locally for future use
+ * 4. The same strategy applies to both Node.js and browser environments
  *
- * API 设计原则：
- * - 异步优先：所有数据获取操作都是异步的
- * - 纯函数工具：提供纯函数用于处理已有数据
- * - 环境兼容：在所有环境中保持一致的行为
+ * API Design Principles:
+ * - Async-first: All data acquisition operations are asynchronous
+ * - Pure function tools: Provide pure functions for processing existing data
+ * - Environment compatibility: Maintain consistent behavior across all environments
  */
 
 import type { UsbDevice, UsbIdsData, UsbVendor } from './types'
@@ -18,11 +18,11 @@ import { USB_IDS_FILE, USB_IDS_SOURCE } from './config'
 import { fetchUsbIdsData } from './core'
 
 // ===============================
-// 环境检测和工具函数
+// Environment Detection and Utility Functions
 // ===============================
 
 /**
- * 可靠的环境检测
+ * Reliable environment detection
  */
 function isNodeEnvironment(): boolean {
   return typeof process !== 'undefined'
@@ -31,18 +31,18 @@ function isNodeEnvironment(): boolean {
 }
 
 /**
- * 获取环境适配的根目录
+ * Get environment-adapted root directory
  */
 function getEnvironmentRoot(): string {
   return isNodeEnvironment() ? process.cwd() : '.'
 }
 
 // ===============================
-// 错误处理
+// Error Handling
 // ===============================
 
 /**
- * 创建标准化的 API 错误
+ * Create standardized API error
  */
 function createApiError(message: string, code: string, cause?: Error): Error {
   const error = new Error(message)
@@ -55,7 +55,7 @@ function createApiError(message: string, code: string, cause?: Error): Error {
 }
 
 /**
- * 错误代码常量
+ * Error code constants
  */
 export const ERROR_CODES = {
   DATA_NOT_FOUND: 'DATA_NOT_FOUND',
@@ -64,7 +64,7 @@ export const ERROR_CODES = {
 } as const
 
 // ===============================
-// 过滤器类型定义
+// Filter Type Definitions
 // ===============================
 
 export type VendorFilter =
@@ -86,26 +86,26 @@ export type DeviceFilter =
   }
 
 // ===============================
-// 数据获取策略
+// Data Acquisition Strategy
 // ===============================
 
 /**
- * 获取USB设备数据（统一的数据获取策略）
- * 优先使用本地JSON文件，如果不存在则请求远程数据
+ * Get USB device data (unified data acquisition strategy)
+ * Prioritize local JSON files, fetch remote data if not available
  */
 async function ensureData(forceUpdate = false): Promise<UsbIdsData> {
   try {
     const { data } = await fetchUsbIdsData(
       USB_IDS_SOURCE,
-      USB_IDS_FILE, // 原始 .ids 文件作为 fallback（相对于 root）
-      getEnvironmentRoot(), // 根目录
-      forceUpdate, // 是否强制更新
+      USB_IDS_FILE, // Original .ids file as fallback (relative to root)
+      getEnvironmentRoot(), // Root directory
+      forceUpdate, // Whether to force update
     )
     return data
   }
   catch (error) {
     throw createApiError(
-      `无法获取USB设备数据: ${(error as Error).message}`,
+      `Failed to fetch USB device data: ${(error as Error).message}`,
       ERROR_CODES.NETWORK_ERROR,
       error as Error,
     )
@@ -113,13 +113,13 @@ async function ensureData(forceUpdate = false): Promise<UsbIdsData> {
 }
 
 // ===============================
-// 纯函数工具（用于处理已有数据）
+// Pure Function Tools (for processing existing data)
 // ===============================
 
 /**
- * 过滤供应商数据（纯函数）
- * @param data USB数据
- * @param filter 过滤条件
+ * Filter vendor data (pure function)
+ * @param data USB data
+ * @param filter Filter conditions
  */
 export function filterVendors(data: UsbIdsData, filter?: VendorFilter): UsbVendor[] {
   const vendors = Object.values(data)
@@ -140,7 +140,7 @@ export function filterVendors(data: UsbIdsData, filter?: VendorFilter): UsbVendo
     return vendors.filter(filter)
   }
 
-  // 对象形式的过滤器
+  // Object-based filter
   return vendors.filter((vendor) => {
     if (filter.id && !vendor.vendor.toLowerCase().includes(filter.id.toLowerCase())) {
       return false
@@ -158,9 +158,9 @@ export function filterVendors(data: UsbIdsData, filter?: VendorFilter): UsbVendo
 }
 
 /**
- * 过滤设备数据（纯函数）
- * @param vendor 供应商数据
- * @param filter 过滤条件
+ * Filter device data (pure function)
+ * @param vendor Vendor data
+ * @param filter Filter conditions
  */
 export function filterDevices(vendor: UsbVendor, filter?: DeviceFilter): UsbDevice[] {
   const devices = Object.values(vendor.devices)
@@ -181,7 +181,7 @@ export function filterDevices(vendor: UsbVendor, filter?: DeviceFilter): UsbDevi
     return devices.filter(filter)
   }
 
-  // 对象形式的过滤器
+  // Object-based filter
   return devices.filter((device) => {
     if (filter.id && !device.devid.toLowerCase().includes(filter.id.toLowerCase())) {
       return false
@@ -199,9 +199,9 @@ export function filterDevices(vendor: UsbVendor, filter?: DeviceFilter): UsbDevi
 }
 
 /**
- * 在数据中搜索设备（纯函数）
- * @param data USB数据
- * @param query 搜索关键词
+ * Search for devices in data (pure function)
+ * @param data USB data
+ * @param query Search query
  */
 export function searchInData(
   data: UsbIdsData,
@@ -214,7 +214,7 @@ export function searchInData(
   const results: Array<{ vendor: UsbVendor, device: UsbDevice, priority: number }> = []
   const searchTerm = query.toLowerCase().trim()
 
-  // 优化的搜索算法，按匹配度排序
+  // Optimized search algorithm, sorted by relevance
   Object.values(data).forEach((vendor) => {
     const vendorMatch = vendor.name.toLowerCase().includes(searchTerm)
       || vendor.vendor.toLowerCase().includes(searchTerm)
@@ -224,7 +224,7 @@ export function searchInData(
       const deviceNameMatch = device.devname.toLowerCase().includes(searchTerm)
 
       if (deviceIdMatch || deviceNameMatch || vendorMatch) {
-        // 计算匹配度（精确匹配优先）
+        // Calculate relevance score (exact matches prioritized)
         let priority = 0
         if (device.devid.toLowerCase() === searchTerm)
           priority += 100
@@ -240,20 +240,20 @@ export function searchInData(
     })
   })
 
-  // 按匹配度排序并移除优先级属性
+  // Sort by relevance and remove priority property
   return results
     .sort((a, b) => b.priority - a.priority)
     .map(({ vendor, device }) => ({ vendor, device }))
 }
 
 // ===============================
-// 公开 API 函数（异步）
+// Public API Functions (Async)
 // ===============================
 
 /**
- * 获取所有符合条件的供应商
- * @param filter 过滤条件函数或供应商ID
- * @param forceUpdate 是否强制更新数据
+ * Get all vendors matching the filter
+ * @param filter Filter function or vendor ID
+ * @param forceUpdate Whether to force data update
  */
 export async function getVendors(
   filter?: VendorFilter,
@@ -264,9 +264,9 @@ export async function getVendors(
 }
 
 /**
- * 获取符合条件的单个供应商
- * @param filter 过滤条件函数或供应商ID
- * @param forceUpdate 是否强制更新数据
+ * Get a single vendor matching the filter
+ * @param filter Filter function or vendor ID
+ * @param forceUpdate Whether to force data update
  */
 export async function getVendor(
   filter: VendorFilter,
@@ -277,10 +277,10 @@ export async function getVendor(
 }
 
 /**
- * 获取供应商的所有设备
- * @param vendorId 供应商ID
- * @param filter 可选的设备过滤条件
- * @param forceUpdate 是否强制更新数据
+ * Get all devices for a vendor
+ * @param vendorId Vendor ID
+ * @param filter Optional device filter conditions
+ * @param forceUpdate Whether to force data update
  */
 export async function getDevices(
   vendorId: string,
@@ -295,10 +295,10 @@ export async function getDevices(
 }
 
 /**
- * 获取单个设备
- * @param vendorId 供应商ID
- * @param deviceId 设备ID
- * @param forceUpdate 是否强制更新数据
+ * Get a single device
+ * @param vendorId Vendor ID
+ * @param deviceId Device ID
+ * @param forceUpdate Whether to force data update
  */
 export async function getDevice(
   vendorId: string,
@@ -313,9 +313,9 @@ export async function getDevice(
 }
 
 /**
- * 搜索设备
- * @param query 搜索关键词
- * @param forceUpdate 是否强制更新数据
+ * Search for devices
+ * @param query Search query
+ * @param forceUpdate Whether to force data update
  */
 export async function searchDevices(
   query: string,
@@ -326,8 +326,8 @@ export async function searchDevices(
 }
 
 /**
- * 获取完整的USB设备数据
- * @param forceUpdate 是否强制更新数据
+ * Get complete USB device data
+ * @param forceUpdate Whether to force data update
  */
 export async function getUsbData(
   forceUpdate = false,
