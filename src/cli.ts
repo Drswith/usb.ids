@@ -24,17 +24,17 @@ export async function updateUsbIdsData(forceUpdate = false): Promise<void> {
     const jsonFile = path.join(root, 'usb.ids.json')
     const versionFile = path.join(root, 'usb.ids.version.json')
 
-    logger.start('开始更新USB设备数据...')
+    logger.start('Starting USB device data update...')
 
     // 检查是否需要更新
     const currentVersionInfo = loadVersionInfo(versionFile)
     if (!forceUpdate && !shouldUpdate(currentVersionInfo, forceUpdate)) {
-      logger.info('数据仍然是最新的，无需更新')
+      logger.info('Data is already up to date, no update needed')
       return
     }
 
     // 获取USB设备数据
-    logger.info('正在获取USB设备数据...')
+    logger.info('Fetching USB device data...')
     const { data, source, versionInfo } = await fetchUsbIdsData(
       USB_IDS_SOURCE,
       fallbackFile,
@@ -43,30 +43,30 @@ export async function updateUsbIdsData(forceUpdate = false): Promise<void> {
     )
 
     // 保存JSON格式数据
-    logger.info('正在保存JSON格式数据...')
+    logger.info('Saving JSON format data...')
     await saveUsbIdsToFile(data, jsonFile)
 
     // 如果是从API获取的数据，保存原始文件
     if (source === 'api') {
-      logger.info('正在保存原始usb.ids文件...')
+      logger.info('Saving original usb.ids file...')
       // 这里需要重新获取原始内容来保存
       // 由于fetchUsbIdsData已经处理了数据获取，我们需要从versionInfo中获取信息
     }
 
     // 保存版本信息
-    logger.info('正在保存版本信息...')
+    logger.info('Saving version information...')
     await saveVersionInfo(versionInfo, versionFile)
 
     // 输出统计信息
-    logger.success(`数据更新完成！`)
-    logger.info(`数据源: ${source === 'api' ? '远程API' : '本地fallback文件'}`)
-    logger.info(`供应商数量: ${versionInfo.vendorCount}`)
-    logger.info(`设备数量: ${versionInfo.deviceCount}`)
-    logger.info(`版本: ${versionInfo.version}`)
-    logger.info(`更新时间: ${versionInfo.fetchTimeFormatted}`)
+    logger.success(`Data update completed!`)
+    logger.info(`Data source: ${source === 'api' ? 'Remote API' : 'Local fallback file'}`)
+    logger.info(`Vendor count: ${versionInfo.vendorCount}`)
+    logger.info(`Device count: ${versionInfo.deviceCount}`)
+    logger.info(`Version: ${versionInfo.version}`)
+    logger.info(`Update time: ${versionInfo.fetchTimeFormatted}`)
   }
   catch (error) {
-    logger.error(`更新失败: ${(error as Error).message}`)
+    logger.error(`Update failed: ${(error as Error).message}`)
     process.exit(1)
   }
 }
@@ -80,26 +80,26 @@ export function showVersionInfo(): void {
     const versionFile = path.join(root, 'usb.ids.version.json')
 
     if (!fs.existsSync(versionFile)) {
-      logger.warn('版本信息文件不存在，请先运行更新命令')
+      logger.warn('Version info file does not exist, please run update command first')
       return
     }
 
     const versionInfo = loadVersionInfo(versionFile)
     if (!versionInfo) {
-      logger.error('无法读取版本信息')
+      logger.error('Unable to read version information')
       return
     }
 
-    logger.info('当前版本信息:')
-    console.log(`  版本: ${versionInfo.version}`)
-    console.log(`  数据源: ${versionInfo.source === 'api' ? '远程API' : '本地fallback文件'}`)
-    console.log(`  供应商数量: ${versionInfo.vendorCount}`)
-    console.log(`  设备数量: ${versionInfo.deviceCount}`)
-    console.log(`  更新时间: ${versionInfo.fetchTimeFormatted}`)
-    console.log(`  内容哈希: ${versionInfo.contentHash}`)
+    logger.info('Current version information:')
+    console.log(`  Version: ${versionInfo.version}`)
+    console.log(`  Data source: ${versionInfo.source === 'api' ? 'Remote API' : 'Local fallback file'}`)
+    console.log(`  Vendor count: ${versionInfo.vendorCount}`)
+    console.log(`  Device count: ${versionInfo.deviceCount}`)
+    console.log(`  Update time: ${versionInfo.fetchTimeFormatted}`)
+    console.log(`  Content hash: ${versionInfo.contentHash}`)
   }
   catch (error) {
-    logger.error(`获取版本信息失败: ${(error as Error).message}`)
+    logger.error(`Failed to get version information: ${(error as Error).message}`)
   }
 }
 
@@ -115,24 +115,24 @@ export function checkUpdate(): void {
     const needsUpdate = shouldUpdate(versionInfo)
 
     if (needsUpdate) {
-      logger.warn('数据需要更新')
+      logger.warn('Data needs to be updated')
       if (versionInfo) {
         const hoursSinceUpdate = (Date.now() - versionInfo.fetchTime) / (1000 * 60 * 60)
-        logger.info(`距离上次更新已过去 ${hoursSinceUpdate.toFixed(1)} 小时`)
+        logger.info(`${hoursSinceUpdate.toFixed(1)} hours have passed since last update`)
       }
       else {
-        logger.info('未找到版本信息，建议进行首次更新')
+        logger.info('Version information not found, recommend performing initial update')
       }
     }
     else {
-      logger.success('数据是最新的，无需更新')
+      logger.success('Data is up to date, no update needed')
       if (versionInfo) {
-        logger.info(`上次更新时间: ${versionInfo.fetchTimeFormatted}`)
+        logger.info(`Last update time: ${versionInfo.fetchTimeFormatted}`)
       }
     }
   }
   catch (error) {
-    logger.error(`检查更新失败: ${(error as Error).message}`)
+    logger.error(`Check update failed: ${(error as Error).message}`)
   }
 }
 
@@ -146,7 +146,7 @@ export async function startWebServer(port = 3000): Promise<void> {
 
     // 检查dist/ui目录是否存在
     if (!fs.existsSync(distDir)) {
-      logger.error('dist/ui目录不存在，请先运行构建命令: pnpm run build:app')
+      logger.error('dist/ui directory does not exist, please run build command first: pnpm run build:app')
       process.exit(1)
     }
 
@@ -216,28 +216,28 @@ export async function startWebServer(port = 3000): Promise<void> {
 
     // 启动服务器
     server.listen(port, () => {
-      logger.success(`usb.ids Web UI服务器已启动！`)
-      logger.info(`访问地址: http://localhost:${port}${UI_LOCAL_BASE_URL}`)
-      logger.info('按 Control+C 停止服务器')
+      logger.success(`usb.ids Web UI server started!`)
+      logger.info(`Access URL: http://localhost:${port}${UI_LOCAL_BASE_URL}`)
+      logger.info('Press Control+C to stop the server')
     })
 
     // 保持服务器运行，直到手动停止
     return new Promise<void>((resolve, reject) => {
       // 监听服务器错误
       server.on('error', (error) => {
-        logger.error(`服务器错误: ${error.message}`)
+        logger.error(`Server error: ${error.message}`)
         reject(error)
       })
 
       // 服务器关闭时resolve Promise
       server.on('close', () => {
-        logger.success('服务器已停止')
+        logger.success('Server stopped')
         resolve()
       })
     })
   }
   catch (error) {
-    logger.error(`启动web服务器失败: ${(error as Error).message}`)
+    logger.error(`Failed to start web server: ${(error as Error).message}`)
     process.exit(1)
   }
 }
@@ -247,24 +247,24 @@ export async function startWebServer(port = 3000): Promise<void> {
  */
 export function showHelp(): void {
   console.log(`
-USB设备数据管理工具
+USB Device Data Management Tool
 
-用法:
+Usage:
   usb-ids <command> [options]
-  或者: node bin/cli.js <command> [options]
+  or: node bin/cli.js <command> [options]
 
-命令:
-  update, fetch    更新USB设备数据
-  version, info    显示当前版本信息
-  check           检查是否需要更新
-  ui              启动web界面服务器
-  help            显示此帮助信息
+Commands:
+  update, fetch    Update USB device data
+  version, info    Show current version information
+  check           Check if update is needed
+  ui              Start web interface server
+  help            Show this help information
 
-选项:
-  --force         强制更新（忽略时间检查）
-  --port <port>   指定web服务器端口（默认3000）
+Options:
+  --force         Force update (ignore time check)
+  --port <port>   Specify web server port (default 3000)
 
-示例:
+Examples:
   usb-ids update
   usb-ids update --force
   usb-ids version
@@ -306,7 +306,7 @@ export async function runCli(): Promise<void> {
           port = parsedPort
         }
         else {
-          logger.error('无效的端口号，使用默认端口3000')
+          logger.error('Invalid port number, using default port 3000')
         }
       }
       await startWebServer(port)
@@ -325,8 +325,8 @@ export async function runCli(): Promise<void> {
         await updateUsbIdsData()
       }
       else {
-        logger.error(`未知命令: ${command}`)
-        logger.info('使用 --help 查看可用命令')
+        logger.error(`Unknown command: ${command}`)
+        logger.info('Use --help to see available commands')
         process.exit(1)
       }
       break
@@ -336,7 +336,7 @@ export async function runCli(): Promise<void> {
 // 当直接运行此文件时执行CLI
 if (import.meta.url === `file://${process.argv[1]}`) {
   runCli().catch((error) => {
-    logger.error(`CLI执行失败: ${error.message}`)
+    logger.error(`CLI execution failed: ${error.message}`)
     process.exit(1)
   })
 }
