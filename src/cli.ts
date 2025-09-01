@@ -17,7 +17,7 @@ import { logger } from './utils'
 /**
  * 主要的数据更新函数
  */
-export async function updateUsbIdsData(forceUpdate = false): Promise<void> {
+async function updateUsbIdsData(forceUpdate = false): Promise<void> {
   try {
     const root = process.cwd()
     const fallbackFile = path.join(root, USB_IDS_FILE)
@@ -74,7 +74,7 @@ export async function updateUsbIdsData(forceUpdate = false): Promise<void> {
 /**
  * 显示当前版本信息
  */
-export function showVersionInfo(): void {
+function showVersionInfo(): void {
   try {
     const root = process.cwd()
     const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE)
@@ -106,7 +106,7 @@ export function showVersionInfo(): void {
 /**
  * 检查是否需要更新
  */
-export function checkUpdate(): void {
+function checkUpdate(): void {
   try {
     const root = process.cwd()
     const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE)
@@ -139,7 +139,7 @@ export function checkUpdate(): void {
 /**
  * 启动静态web服务器
  */
-export async function startWebServer(port = 3000): Promise<void> {
+async function startWebServer(port = 3000): Promise<void> {
   try {
     const root = process.cwd()
     const distDir = path.join(root, 'dist', 'ui')
@@ -245,7 +245,7 @@ export async function startWebServer(port = 3000): Promise<void> {
 /**
  * 显示帮助信息
  */
-export function showHelp(): void {
+function showHelp(): void {
   console.log(`
 USB Device Data Management Tool
 
@@ -277,7 +277,7 @@ Examples:
 /**
  * CLI主函数 - 处理命令行参数
  */
-export async function runCli(): Promise<void> {
+async function runCli(): Promise<void> {
   const args = process.argv.slice(2)
   const command = args[0]
 
@@ -333,10 +333,7 @@ export async function runCli(): Promise<void> {
   }
 }
 
-// 当直接运行此文件时执行CLI
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runCli().catch((error) => {
-    logger.error(`CLI execution failed: ${error.message}`)
-    process.exit(1)
-  })
-}
+runCli().catch((error) => {
+  logger.error(`CLI execution failed: ${error.message}`)
+  process.exit(1)
+})
