@@ -39,11 +39,9 @@ jobs:
         with:
           node-version: lts/*
           cache: pnpm
+
       - name: Install dependencies
         run: pnpm install
-
-      - name: Fetch USB IDs
-        run: pnpm run fetch-usb-ids
 
       - name: Build Web App
         run: pnpm run build:app
@@ -52,11 +50,13 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
           # 上传 dist 文件夹
           path: ./dist
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
