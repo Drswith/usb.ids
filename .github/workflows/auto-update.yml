@@ -70,9 +70,24 @@ jobs:
           #   echo "skip=false" >> $GITHUB_OUTPUT
           # fi
 
-      - name: Build project
+      - name: Build Lib
         if: steps.check-update.outputs.skip != 'true'
-        run: pnpm run build
+        run: pnpm run build:lib
+
+      - name: Build UI
+        if: steps.check-update.outputs.skip != 'true'
+        run: pnpm run build:app --outDir dist/ui
+
+      - name: Upload build artifacts
+        if: steps.check-update.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: usb-ids-build-${{ github.run_number }}
+          path: |
+            dist/
+            usb.ids.json
+            usb.ids.version.json
+          retention-days: 30
 
       - name: Update package.json version
         if: steps.check-update.outputs.skip != 'true'

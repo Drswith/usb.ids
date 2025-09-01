@@ -42,21 +42,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Generate USB.IDS data
-        run: |
-          pnpm run build
-          node bin/cli.cjs update
+      - name: Fetch USB IDs
+        run: pnpm run fetch-usb-ids
 
-      - name: Build
-        run: pnpm run build
+      - name: Build Web App
+        run: pnpm run build:app
         env:
           VITE_BASE_PATH: /usb.ids/
-
-      - name: Copy USB.IDS files to dist
-        run: |
-          cp usb.ids.json dist/usb.ids.json
-          cp usb.ids.version.json dist/usb.ids.version.json
-          cp usb.ids dist/usb.ids
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
