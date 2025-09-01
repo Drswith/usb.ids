@@ -3,7 +3,7 @@
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
-import { fetchUsbIdsData, saveUsbIdsToFile } from '../plugins/plugin-usb-ids/utils'
+import { fetchUsbIdsData, saveUsbIdsToFile } from '../src'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(__dirname, '..')
@@ -30,12 +30,11 @@ async function main() {
       DEFAULT_USB_IDS_URLS,
       FALLBACK_FILE,
       projectRoot,
-      true,
       forceUpdate,
     )
 
     const outputPath = path.resolve(projectRoot, FALLBACK_FILE)
-    await saveUsbIdsToFile(data, outputPath, true)
+    await saveUsbIdsToFile(data, outputPath)
 
     console.log(`✅ USB设备数据获取完成！数据源: ${source === 'api' ? '远程API' : '本地fallback'}`)
 

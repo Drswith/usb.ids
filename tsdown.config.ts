@@ -3,7 +3,7 @@ import { defineConfig } from 'tsdown'
 export default defineConfig((_) => {
   const share = {
     clean: true,
-    target: 'node16',
+    target: 'node18',
   }
 
   return [
