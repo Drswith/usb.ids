@@ -254,7 +254,7 @@ export function searchDevicesSync(
 }
 
 /**
- * 获取原始USB数据（异步版本）
+ * 获取完整的USB设备数据（异步版本）
  * @param forceUpdate 是否强制更新数据
  */
 export async function getUsbData(

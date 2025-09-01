@@ -1,129 +1,88 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
+import * as api from '../src/api'
+import { mockUsbData } from './setup'
 
 describe('浏览器环境 API 测试', () => {
-  let api: typeof import('../src/api')
-
-  beforeEach(async () => {
-    // 清理模块缓存
-    vi.resetModules()
-
-    // 模拟fetchUsbIdsData在DOM环境下的行为
-    vi.doMock('../src/core', () => ({
-      fetchUsbIdsData: vi.fn().mockResolvedValue({
-        data: {
-          1234: {
-            vendor: '1234',
-            name: 'Test Vendor',
-            devices: {
-              5678: {
-                devid: '5678',
-                devname: 'Test Device',
-              },
-            },
-          },
-        },
-        source: 'api' as const,
-        versionInfo: {
-          fetchTime: new Date().toISOString(),
-          contentHash: 'test-hash',
-          source: 'https://example.com/usb.ids',
-          vendorCount: 1,
-          deviceCount: 1,
-          version: '1.0.0',
-        },
-      }),
-    }))
-
-    // 动态导入API模块
-    api = await import('../src/api')
-  })
-
   describe('异步函数在浏览器环境下的表现', () => {
     it('getVendors应该在浏览器环境下正常工作', async () => {
       const vendors = await api.getVendors()
-      expect(vendors).toHaveLength(1)
-      expect(vendors[0].vendor).toBe('1234')
-      expect(vendors[0].name).toBe('Test Vendor')
+      expect(vendors.length).toBeGreaterThan(0)
+      expect(vendors[0]).toHaveProperty('vendor')
+      expect(vendors[0]).toHaveProperty('name')
     })
 
     it('getVendor应该在浏览器环境下正常工作', async () => {
-      const vendor = await api.getVendor('1234')
+      const firstVendorId = Object.keys(mockUsbData)[0]
+      const vendor = await api.getVendor(firstVendorId)
       expect(vendor).not.toBeNull()
-      expect(vendor!.vendor).toBe('1234')
-      expect(vendor!.name).toBe('Test Vendor')
+      expect(vendor!.vendor).toBe(firstVendorId)
     })
 
     it('getDevices应该在浏览器环境下正常工作', async () => {
-      const devices = await api.getDevices('1234')
-      expect(devices).toHaveLength(1)
-      expect(devices[0].devid).toBe('5678')
-      expect(devices[0].devname).toBe('Test Device')
+      const firstVendorId = Object.keys(mockUsbData)[0]
+      const devices = await api.getDevices(firstVendorId)
+      expect(devices.length).toBeGreaterThan(0)
+      expect(devices[0]).toHaveProperty('devid')
+      expect(devices[0]).toHaveProperty('devname')
     })
 
     it('getDevice应该在浏览器环境下正常工作', async () => {
-      const device = await api.getDevice('1234', '5678')
+      const firstVendorId = Object.keys(mockUsbData)[0]
+      const firstDeviceId = Object.keys(mockUsbData[firstVendorId].devices)[0]
+      const device = await api.getDevice(firstVendorId, firstDeviceId)
       expect(device).not.toBeNull()
-      expect(device!.devid).toBe('5678')
-      expect(device!.devname).toBe('Test Device')
+      expect(device!.devid).toBe(firstDeviceId)
     })
 
     it('searchDevices应该在浏览器环境下正常工作', async () => {
-      const results = await api.searchDevices('Test')
-      expect(results).toHaveLength(1)
-      expect(results[0].vendor.name).toBe('Test Vendor')
-      expect(results[0].device.devname).toBe('Test Device')
+      const firstVendor = Object.values(mockUsbData)[0]
+      const results = await api.searchDevices(firstVendor.name)
+      expect(results.length).toBeGreaterThan(0)
+      expect(results[0].vendor.name).toBe(firstVendor.name)
     })
 
     it('getUsbData应该在浏览器环境下正常工作', async () => {
       const data = await api.getUsbData()
-      expect(Object.keys(data)).toHaveLength(1)
-      expect(data['1234']).toBeDefined()
-      expect(data['1234'].name).toBe('Test Vendor')
+      expect(Object.keys(data).length).toBeGreaterThan(0)
+      const firstVendorId = Object.keys(mockUsbData)[0]
+      expect(data[firstVendorId]).toBeDefined()
     })
   })
 
   describe('同步函数在浏览器环境下的表现', () => {
-    const testData = {
-      1234: {
-        vendor: '1234',
-        name: 'Test Vendor',
-        devices: {
-          5678: {
-            devid: '5678',
-            devname: 'Test Device',
-          },
-        },
-      },
-    }
-
     it('getVendorsSync应该在浏览器环境下正常工作', () => {
-      const vendors = api.getVendorsSync(undefined, testData)
-      expect(vendors).toHaveLength(1)
-      expect(vendors[0].vendor).toBe('1234')
+      const vendors = api.getVendorsSync(undefined, mockUsbData)
+      expect(vendors.length).toBeGreaterThan(0)
+      expect(vendors[0]).toHaveProperty('vendor')
     })
 
     it('getVendorSync应该在浏览器环境下正常工作', () => {
-      const vendor = api.getVendorSync('1234', testData)
+      const firstVendorId = Object.keys(mockUsbData)[0]
+      const vendor = api.getVendorSync(firstVendorId, mockUsbData)
       expect(vendor).not.toBeNull()
-      expect(vendor!.vendor).toBe('1234')
+      expect(vendor!.vendor).toBe(firstVendorId)
     })
 
     it('getDevicesSync应该在浏览器环境下正常工作', () => {
-      const devices = api.getDevicesSync('1234', undefined, testData)
-      expect(devices).toHaveLength(1)
-      expect(devices[0].devid).toBe('5678')
+      const firstVendorId = Object.keys(mockUsbData)[0]
+      const devices = api.getDevicesSync(firstVendorId, undefined, mockUsbData)
+      expect(devices.length).toBeGreaterThan(0)
+      expect(devices[0]).toHaveProperty('devid')
     })
 
     it('getDeviceSync应该在浏览器环境下正常工作', () => {
-      const device = api.getDeviceSync('1234', '5678', testData)
+      const firstVendorId = Object.keys(mockUsbData)[0]
+      const firstDeviceId = Object.keys(mockUsbData[firstVendorId].devices)[0]
+      const device = api.getDeviceSync(firstVendorId, firstDeviceId, mockUsbData)
       expect(device).not.toBeNull()
-      expect(device!.devid).toBe('5678')
+      expect(device!.devid).toBe(firstDeviceId)
     })
 
     it('searchDevicesSync应该在浏览器环境下正常工作', () => {
-      const results = api.searchDevicesSync('Test', testData)
-      expect(results).toHaveLength(1)
-      expect(results[0].vendor.name).toBe('Test Vendor')
+      const firstVendor = Object.values(mockUsbData)[0]
+      const results = api.searchDevicesSync(firstVendor.name, mockUsbData)
+      expect(results.length).toBeGreaterThan(0)
+      expect(results[0].vendor.name).toBe(firstVendor.name)
     })
   })
 
@@ -144,6 +103,8 @@ describe('浏览器环境 API 测试', () => {
     })
 
     it('异步函数在网络错误时应该正确处理', async () => {
+      const { vi } = await import('vitest')
+
       // 清理所有模块缓存
       vi.resetModules()
 

@@ -31,6 +31,7 @@
     "node_modules",
     "**/*.spec.ts",
     "**/*.test.ts",
+    "tests/setup.ts",
     "dist",
     "examples"
   ]

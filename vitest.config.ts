@@ -2,13 +2,11 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    server: {
-      deps: {
-        inline: ['vitest-package-exports'],
-      },
-    },
+    setupFiles: ['tests/setup.ts'],
     projects: [
       {
+        // 添加 "extends: true" 继承根配置中的选项
+        extends: true,
         test: {
           include: ['tests/**/*.browser.test.{ts,js}'],
           // 建议内联配置时定义项目名称
