@@ -1,4 +1,7 @@
+// 导出API函数
+export * from './api'
 export * as cli from './cli'
+
 export * as config from './config'
 
 // 导出核心业务逻辑
