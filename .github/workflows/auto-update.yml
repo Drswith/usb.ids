@@ -53,7 +53,7 @@ jobs:
           fi
 
       - name: Fetch latest USB.IDS data
-        run: pnpm run fetch-usb-ids --force
+        run: node bin/cli.cjs update --force
 
       - name: Get new version info
         id: new-version
@@ -78,7 +78,7 @@ jobs:
         if: steps.check-update.outputs.needs_update == 'true'
         run: |
           # 重新生成版本信息（会自动更新package.json版本）
-          pnpm run fetch-usb-ids --force
+          node bin/cli.cjs update --force
 
           # 验证生成的文件
           if [ ! -f "usb.ids.version.json" ]; then
