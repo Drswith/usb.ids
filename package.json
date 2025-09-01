@@ -68,6 +68,7 @@
     "bumpp": "^10.1.0",
     "eslint": "9.23.0",
     "eslint-plugin-format": "1.0.1",
+    "happy-dom": "^18.0.1",
     "lint-staged": "^15.5.0",
     "simple-git-hooks": "^2.11.1",
     "tinyexec": "^0.3.2",
@@ -75,7 +76,7 @@
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vite": "^6.2.1",
-    "vitest": "^3.0.8",
+    "vitest": "^3.2.4",
     "vitest-package-exports": "^0.1.1",
     "yaml": "^2.7.0"
   },
