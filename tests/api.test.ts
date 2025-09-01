@@ -170,54 +170,43 @@ describe('api functions', () => {
     })
   })
 
-  describe('sync functions', () => {
-    describe('getVendorsSync', () => {
-      it('should return all vendors', () => {
-        const vendors = api.getVendorsSync(undefined, mockUsbData)
+  describe('pure functions', () => {
+    describe('filterVendors', () => {
+      it('should return all vendors when no filter provided', () => {
+        const vendors = api.filterVendors(mockUsbData)
         expect(vendors.length).toBeGreaterThan(0)
         expect(vendors[0]).toHaveProperty('vendor')
       })
 
       it('should filter vendors by string', () => {
-        const vendors = api.getVendorsSync('Apple', mockUsbData)
+        const vendors = api.filterVendors(mockUsbData, 'Apple')
         expect(vendors.length).toBeGreaterThanOrEqual(0)
         if (vendors.length > 0) {
           expect(vendors[0].name.toLowerCase()).toContain('apple')
         }
       })
 
-      it('should work without explicit data parameter', () => {
-        // 在测试环境中，由于存在模拟数据，这个测试可能会通过
-        // 但在真实环境中没有本地文件时会抛出错误
-        try {
-          const vendors = api.getVendorsSync()
-          expect(vendors.length).toBeGreaterThanOrEqual(0)
+      it('should filter vendors by function', () => {
+        const vendors = api.filterVendors(mockUsbData, (vendor: UsbVendor) => vendor.name.toLowerCase().includes('apple'),
+        )
+        expect(vendors.length).toBeGreaterThanOrEqual(0)
+        if (vendors.length > 0) {
+          expect(vendors[0].name.toLowerCase()).toContain('apple')
         }
-        catch (error) {
-          // 如果抛出错误，应该是关于文件不存在的错误
-          expect((error as Error).message).toMatch(/本地USB数据文件不存在|浏览器环境不支持|无法读取本地USB数据/)
-        }
+      })
+
+      it('should filter vendors by object filter', () => {
+        const firstVendorId = Object.keys(mockUsbData)[0]
+        const vendors = api.filterVendors(mockUsbData, { id: firstVendorId })
+        expect(vendors).toHaveLength(1)
+        expect(vendors[0].vendor).toBe(firstVendorId)
       })
     })
 
-    describe('getVendorSync', () => {
-      it('should return matching vendor', () => {
-        const firstVendorId = Object.keys(mockUsbData)[0]
-        const vendor = api.getVendorSync(firstVendorId, mockUsbData)
-        expect(vendor).not.toBeNull()
-        expect(vendor!.vendor).toBe(firstVendorId)
-      })
-
-      it('should return null if no match', () => {
-        const vendor = api.getVendorSync('ffffffff', mockUsbData)
-        expect(vendor).toBeNull()
-      })
-    })
-
-    describe('getDevicesSync', () => {
-      it('should return all devices for vendor', () => {
-        const firstVendorId = Object.keys(mockUsbData)[0]
-        const devices = api.getDevicesSync(firstVendorId, undefined, mockUsbData)
+    describe('filterDevices', () => {
+      it('should return all devices when no filter provided', () => {
+        const firstVendor = Object.values(mockUsbData)[0]
+        const devices = api.filterDevices(firstVendor)
         expect(devices.length).toBeGreaterThanOrEqual(0)
         if (devices.length > 0) {
           expect(devices[0]).toHaveProperty('devid')
@@ -225,53 +214,56 @@ describe('api functions', () => {
       })
 
       it('should filter devices by string', () => {
-        const firstVendorId = Object.keys(mockUsbData)[0]
-        const firstDeviceName = Object.values(mockUsbData[firstVendorId].devices)[0]?.devname
+        const firstVendor = Object.values(mockUsbData)[0]
+        const firstDeviceName = Object.values(firstVendor.devices)[0]?.devname
         if (firstDeviceName) {
-          const devices = api.getDevicesSync(firstVendorId, firstDeviceName, mockUsbData)
+          const devices = api.filterDevices(firstVendor, firstDeviceName)
           expect(devices).toHaveLength(1)
           expect(devices[0].devname).toBe(firstDeviceName)
         }
       })
-    })
 
-    describe('getDeviceSync', () => {
-      it('should return specified device', () => {
-        const firstVendorId = Object.keys(mockUsbData)[0]
-        const firstDeviceId = Object.keys(mockUsbData[firstVendorId].devices)[0]
+      it('should filter devices by function', () => {
+        const firstVendor = Object.values(mockUsbData)[0]
+        const firstDeviceId = Object.keys(firstVendor.devices)[0]
         if (firstDeviceId) {
-          const device = api.getDeviceSync(firstVendorId, firstDeviceId, mockUsbData)
-          expect(device).not.toBeNull()
-          expect(device!.devid).toBe(firstDeviceId)
+          const devices = api.filterDevices(firstVendor, (device: UsbDevice) => device.devid === firstDeviceId,
+          )
+          expect(devices).toHaveLength(1)
+          expect(devices[0].devid).toBe(firstDeviceId)
         }
       })
-
-      it('should return null for non-existent device', () => {
-        const firstVendorId = Object.keys(mockUsbData)[0]
-        const device = api.getDeviceSync(firstVendorId, 'ffffffff', mockUsbData)
-        expect(device).toBeNull()
-      })
     })
 
-    describe('searchDevicesSync', () => {
+    describe('searchInData', () => {
       it('should search devices by keyword', () => {
-        const firstVendorId = Object.keys(mockUsbData)[0]
-        const firstDevice = Object.values(mockUsbData[firstVendorId].devices)[0]
+        const firstVendor = Object.values(mockUsbData)[0]
+        const firstDevice = Object.values(firstVendor.devices)[0]
         if (firstDevice) {
-          const results = api.searchDevicesSync(firstDevice.devname, mockUsbData)
+          const results = api.searchInData(mockUsbData, firstDevice.devname)
           expect(results.length).toBeGreaterThanOrEqual(1)
           expect(results[0].device.devname).toBe(firstDevice.devname)
         }
       })
 
-      it('should work without explicit data parameter', () => {
-        try {
-          const results = api.searchDevicesSync('test')
-          expect(Array.isArray(results)).toBe(true)
-        }
-        catch (error) {
-          // 如果抛出错误，应该是关于文件不存在的错误
-          expect((error as Error).message).toMatch(/本地USB数据文件不存在|浏览器环境不支持|无法读取本地USB数据/)
+      it('should return empty array for empty query', () => {
+        const results = api.searchInData(mockUsbData, '')
+        expect(results).toHaveLength(0)
+      })
+
+      it('should return empty array for no matches', () => {
+        const results = api.searchInData(mockUsbData, 'nonexistent12345')
+        expect(results).toHaveLength(0)
+      })
+
+      it('should sort results by priority', () => {
+        const firstVendorId = Object.keys(mockUsbData)[0]
+        const firstDeviceId = Object.keys(mockUsbData[firstVendorId].devices)[0]
+        if (firstDeviceId) {
+          const results = api.searchInData(mockUsbData, firstDeviceId)
+          expect(results.length).toBeGreaterThanOrEqual(1)
+          // 精确匹配应该排在前面
+          expect(results[0].device.devid).toBe(firstDeviceId)
         }
       })
     })
@@ -287,35 +279,6 @@ describe('api functions', () => {
       it('should support force update', async () => {
         const data = await api.getUsbData(true)
         expect(Object.keys(data).length).toBeGreaterThan(0)
-      })
-    })
-
-    describe('getUsbDataSync', () => {
-      it('should return complete USB data when provided', () => {
-        const data = api.getUsbDataSync(mockUsbData)
-        expect(Object.keys(data).length).toBeGreaterThan(0)
-        const firstVendorId = Object.keys(data)[0]
-        expect(data[firstVendorId]).toBeDefined()
-        expect(data).toBe(mockUsbData)
-      })
-
-      it('should work without explicit data parameter', () => {
-        try {
-          const data = api.getUsbDataSync()
-          expect(Object.keys(data).length).toBeGreaterThanOrEqual(0)
-        }
-        catch (error) {
-          // 如果抛出错误，应该是关于文件不存在的错误
-          expect((error as Error).message).toMatch(/本地USB数据文件不存在|浏览器环境不支持|无法读取本地USB数据/)
-        }
-      })
-
-      it('should return the same data that was passed in', () => {
-        const result = api.getUsbDataSync(mockUsbData)
-        expect(result).toEqual(mockUsbData)
-        expect(result['1d6b']).toBeDefined()
-        expect(result['05ac']).toBeDefined()
-        expect(result['1234']).toBeDefined()
       })
     })
   })
