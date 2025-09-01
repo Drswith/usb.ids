@@ -9,7 +9,7 @@ import * as fs from 'node:fs'
 import { createServer } from 'node:http'
 import * as path from 'node:path'
 import * as process from 'node:process'
-import { UI_LOCAL_BASE_URL, USB_IDS_SOURCE } from './config'
+import { UI_LOCAL_BASE_URL, USB_IDS_FILE, USB_IDS_JSON_FILE, USB_IDS_SOURCE, USB_IDS_VERSION_JSON_FILE } from './config'
 import { fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile, saveVersionInfo } from './core'
 import { shouldUpdate } from './parser'
 import { logger } from './utils'
@@ -20,9 +20,9 @@ import { logger } from './utils'
 export async function updateUsbIdsData(forceUpdate = false): Promise<void> {
   try {
     const root = process.cwd()
-    const fallbackFile = path.join(root, 'usb.ids')
-    const jsonFile = path.join(root, 'usb.ids.json')
-    const versionFile = path.join(root, 'usb.ids.version.json')
+    const fallbackFile = path.join(root, USB_IDS_FILE)
+    const jsonFile = path.join(root, USB_IDS_JSON_FILE)
+    const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE)
 
     logger.start('Starting USB device data update...')
 
@@ -77,7 +77,7 @@ export async function updateUsbIdsData(forceUpdate = false): Promise<void> {
 export function showVersionInfo(): void {
   try {
     const root = process.cwd()
-    const versionFile = path.join(root, 'usb.ids.version.json')
+    const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE)
 
     if (!fs.existsSync(versionFile)) {
       logger.warn('Version info file does not exist, please run update command first')
@@ -109,7 +109,7 @@ export function showVersionInfo(): void {
 export function checkUpdate(): void {
   try {
     const root = process.cwd()
-    const versionFile = path.join(root, 'usb.ids.version.json')
+    const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE)
 
     const versionInfo = loadVersionInfo(versionFile)
     const needsUpdate = shouldUpdate(versionInfo)
@@ -175,9 +175,9 @@ export async function startWebServer(port = 3000): Promise<void> {
         return
       }
 
-      // 处理usb.ids.json和usb.ids.version.json
-      if (filePath.includes('usb.ids.json') || filePath.includes('usb.ids.version.json')) {
-        // usb.ids.json和usb.ids.version.json与在dist同级目录
+      // 处理 USB 数据文件
+      if (filePath.includes(USB_IDS_JSON_FILE) || filePath.includes(USB_IDS_VERSION_JSON_FILE)) {
+        // USB 数据文件与 dist 同级目录
         filePath = path.join(root, req.url!.replace(UI_LOCAL_BASE_URL, ''))
         console.log('json file path', filePath)
       }

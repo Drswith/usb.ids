@@ -1,6 +1,7 @@
 import type { UsbIdsData, VersionInfo } from './types'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { USB_IDS_FILE, USB_IDS_VERSION_JSON_FILE } from './config'
 import { downloadFromUrls } from './fetcher'
 import { createVersionInfo, generateContentHash, parseUsbIds, shouldUpdate } from './parser'
 
@@ -28,7 +29,7 @@ export async function fetchUsbIdsData(
   root: string,
   forceUpdate = false,
 ): Promise<{ data: UsbIdsData, source: 'api' | 'fallback', versionInfo: VersionInfo }> {
-  const versionFilePath = path.resolve(root, 'usb.ids.version.json')
+  const versionFilePath = path.resolve(root, USB_IDS_VERSION_JSON_FILE)
 
   try {
     // 检查现有版本信息
@@ -72,7 +73,7 @@ export async function fetchUsbIdsData(
       }
 
       // 保存原始文件
-      const rawFilePath = path.resolve(root, 'usb.ids')
+      const rawFilePath = path.resolve(root, USB_IDS_FILE)
       await saveRawUsbIdsFile(usbIdsContent, rawFilePath)
 
       data = parseUsbIds(usbIdsContent)

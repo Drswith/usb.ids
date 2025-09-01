@@ -1,5 +1,5 @@
 import type { UsbDevice, UsbIdsData, UsbVendor, VersionInfo } from '../src/types'
-import { UI_LOCAL_BASE_URL } from '../src/config'
+import { UI_LOCAL_BASE_URL, USB_IDS_JSON_FILE, USB_IDS_VERSION_JSON_FILE } from '../src/config'
 import './styles.css'
 
 // 类型定义
@@ -319,7 +319,7 @@ async function loadDataFromLocal<T>(file: string): Promise<T> {
 
 async function loadVersionInfo(): Promise<void> {
   try {
-    versionInfo = useLocalData ? await loadDataFromLocal<VersionInfo>('usb.ids.version.json') : await loadDataFromNpm<VersionInfo>(version, 'usb.ids.version.json')
+    versionInfo = useLocalData ? await loadDataFromLocal<VersionInfo>(USB_IDS_VERSION_JSON_FILE) : await loadDataFromNpm<VersionInfo>(version, USB_IDS_VERSION_JSON_FILE)
     updateVersionDisplay()
     startCountdown()
   }
@@ -563,7 +563,7 @@ async function initializeApp(): Promise<void> {
     }
 
     // 异步加载USB IDs数据
-    const usbIdsData = useLocalData ? await loadDataFromLocal<UsbIdsData>('usb.ids.json') : await loadDataFromNpm<UsbIdsData>(version, 'usb.ids.json')
+    const usbIdsData = useLocalData ? await loadDataFromLocal<UsbIdsData>(USB_IDS_JSON_FILE) : await loadDataFromNpm<UsbIdsData>(version, USB_IDS_JSON_FILE)
     console.log('USB IDs Data loaded:', usbIdsData)
 
     // 设置数据
