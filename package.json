@@ -73,14 +73,11 @@
     "lint-staged": "^15.5.0",
     "npm-run-all2": "^8.0.4",
     "simple-git-hooks": "^2.11.1",
-    "tinyexec": "^0.3.2",
     "tsdown": "^0.14.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vite": "^6.2.1",
-    "vitest": "^3.2.4",
-    "vitest-package-exports": "^0.1.1",
-    "yaml": "^2.7.0"
+    "vitest": "^3.2.4"
   },
   "simple-git-hooks": {
     "pre-commit": "npm run lint-staged"
