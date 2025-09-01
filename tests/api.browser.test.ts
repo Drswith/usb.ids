@@ -2,23 +2,25 @@ import { describe, expect, it } from 'vitest'
 import * as api from '../src/api'
 import { mockUsbData } from './setup'
 
-describe('浏览器环境 API 测试', () => {
-  describe('异步函数在浏览器环境下的表现', () => {
-    it('getVendors应该在浏览器环境下正常工作', async () => {
+describe('browser Environment API Tests', () => {
+  describe('async API Functions in Browser Environment', () => {
+    it('should get all vendors in browser environment', async () => {
       const vendors = await api.getVendors()
       expect(vendors.length).toBeGreaterThan(0)
       expect(vendors[0]).toHaveProperty('vendor')
       expect(vendors[0]).toHaveProperty('name')
+      expect(vendors[0]).toHaveProperty('devices')
     })
 
-    it('getVendor应该在浏览器环境下正常工作', async () => {
+    it('should get specific vendor by ID in browser environment', async () => {
       const firstVendorId = Object.keys(mockUsbData)[0]
       const vendor = await api.getVendor(firstVendorId)
       expect(vendor).not.toBeNull()
       expect(vendor!.vendor).toBe(firstVendorId)
+      expect(vendor!.name).toBe(mockUsbData[firstVendorId].name)
     })
 
-    it('getDevices应该在浏览器环境下正常工作', async () => {
+    it('should get vendor devices in browser environment', async () => {
       const firstVendorId = Object.keys(mockUsbData)[0]
       const devices = await api.getDevices(firstVendorId)
       expect(devices.length).toBeGreaterThan(0)
@@ -26,84 +28,147 @@ describe('浏览器环境 API 测试', () => {
       expect(devices[0]).toHaveProperty('devname')
     })
 
-    it('getDevice应该在浏览器环境下正常工作', async () => {
+    it('should get specific device in browser environment', async () => {
       const firstVendorId = Object.keys(mockUsbData)[0]
       const firstDeviceId = Object.keys(mockUsbData[firstVendorId].devices)[0]
       const device = await api.getDevice(firstVendorId, firstDeviceId)
       expect(device).not.toBeNull()
       expect(device!.devid).toBe(firstDeviceId)
+      expect(device!.devname).toBe(mockUsbData[firstVendorId].devices[firstDeviceId].devname)
     })
 
-    it('searchDevices应该在浏览器环境下正常工作', async () => {
+    it('should search devices across vendors in browser environment', async () => {
       const firstVendor = Object.values(mockUsbData)[0]
       const results = await api.searchDevices(firstVendor.name)
       expect(results.length).toBeGreaterThan(0)
+      expect(results[0]).toHaveProperty('vendor')
+      expect(results[0]).toHaveProperty('device')
       expect(results[0].vendor.name).toBe(firstVendor.name)
     })
 
-    it('getUsbData应该在浏览器环境下正常工作', async () => {
+    it('should get complete USB data in browser environment', async () => {
       const data = await api.getUsbData()
       expect(Object.keys(data).length).toBeGreaterThan(0)
       const firstVendorId = Object.keys(mockUsbData)[0]
       expect(data[firstVendorId]).toBeDefined()
+      expect(data[firstVendorId].vendor).toBe(firstVendorId)
     })
   })
 
-  describe('纯函数在浏览器环境下的表现', () => {
-    it('filterVendors应该在浏览器环境下正常工作', () => {
+  describe('pure Function Tools in Browser Environment', () => {
+    it('should filter vendors without conditions', () => {
       const vendors = api.filterVendors(mockUsbData)
       expect(vendors.length).toBeGreaterThan(0)
       expect(vendors[0]).toHaveProperty('vendor')
+      expect(vendors[0]).toHaveProperty('name')
+      expect(vendors[0]).toHaveProperty('devices')
     })
 
-    it('filterVendors过滤功能应该正常工作', () => {
+    it('should filter vendors with string filter', () => {
       const firstVendorId = Object.keys(mockUsbData)[0]
       const vendors = api.filterVendors(mockUsbData, firstVendorId)
       expect(vendors.length).toBeGreaterThan(0)
       expect(vendors[0].vendor).toBe(firstVendorId)
     })
 
-    it('filterDevices应该在浏览器环境下正常工作', () => {
+    it('should filter vendors with object filter', () => {
+      const firstVendorId = Object.keys(mockUsbData)[0]
+      const vendors = api.filterVendors(mockUsbData, { id: firstVendorId })
+      expect(vendors.length).toBeGreaterThan(0)
+      expect(vendors[0].vendor).toBe(firstVendorId)
+    })
+
+    it('should filter vendors with function filter', () => {
+      const firstVendorName = Object.values(mockUsbData)[0].name
+      const vendors = api.filterVendors(mockUsbData, vendor => vendor.name === firstVendorName)
+      expect(vendors.length).toBeGreaterThan(0)
+      expect(vendors[0].name).toBe(firstVendorName)
+    })
+
+    it('should filter devices without conditions', () => {
       const firstVendor = Object.values(mockUsbData)[0]
       const devices = api.filterDevices(firstVendor)
       expect(devices.length).toBeGreaterThan(0)
       expect(devices[0]).toHaveProperty('devid')
+      expect(devices[0]).toHaveProperty('devname')
     })
 
-    it('searchInData应该在浏览器环境下正常工作', () => {
+    it('should filter devices with string filter', () => {
+      const firstVendor = Object.values(mockUsbData)[0]
+      const firstDeviceId = Object.keys(firstVendor.devices)[0]
+      const devices = api.filterDevices(firstVendor, firstDeviceId)
+      expect(devices.length).toBeGreaterThan(0)
+      expect(devices[0].devid).toBe(firstDeviceId)
+    })
+
+    it('should search in data and return results', () => {
       const firstVendor = Object.values(mockUsbData)[0]
       const results = api.searchInData(mockUsbData, firstVendor.name)
       expect(results.length).toBeGreaterThan(0)
+      expect(results[0]).toHaveProperty('vendor')
+      expect(results[0]).toHaveProperty('device')
       expect(results[0].vendor.name).toBe(firstVendor.name)
+    })
+
+    it('should return empty array for empty search query', () => {
+      const results = api.searchInData(mockUsbData, '')
+      expect(results).toEqual([])
     })
   })
 
-  describe('环境检测', () => {
-    it('应该正确检测到浏览器环境', () => {
-      // happy-dom 提供的浏览器环境模拟
+  describe('environment Detection', () => {
+    it('should correctly detect browser environment', () => {
+      // Browser environment simulation provided by happy-dom
       expect(typeof window).toBe('object')
       expect(typeof document).toBe('object')
       expect(typeof navigator).toBe('object')
       expect(typeof location).toBe('object')
     })
+
+    it('should have browser-specific globals available', () => {
+      expect(window).toBeDefined()
+      expect(document).toBeDefined()
+      expect(navigator).toBeDefined()
+      expect(location).toBeDefined()
+    })
   })
 
-  describe('错误处理在浏览器环境下的表现', () => {
-    it('异步函数在网络错误时应该正确处理', async () => {
+  describe('error Handling in Browser Environment', () => {
+    it('should handle network errors correctly for async functions', async () => {
       const { vi } = await import('vitest')
 
-      // 清理所有模块缓存
+      // Clear all module caches
       vi.resetModules()
 
-      // 重新模拟fetchUsbIdsData抛出错误
+      // Mock fetchUsbIdsData to throw an error
       vi.doMock('../src/core', () => ({
-        fetchUsbIdsData: vi.fn().mockRejectedValue(new Error('网络错误')),
+        fetchUsbIdsData: vi.fn().mockRejectedValue(new Error('Network error')),
       }))
 
-      // 重新导入模块
+      // Re-import the module
       const { getVendors } = await import('../src/api')
 
-      await expect(getVendors()).rejects.toThrow('无法获取USB设备数据')
+      await expect(getVendors()).rejects.toThrow('Failed to fetch USB device data')
+    })
+
+    it('should handle force update parameter correctly', async () => {
+      const vendors = await api.getVendors(undefined, true)
+      expect(vendors.length).toBeGreaterThan(0)
+    })
+
+    it('should return null for non-existent vendor', async () => {
+      const vendor = await api.getVendor('non-existent-id')
+      expect(vendor).toBeNull()
+    })
+
+    it('should return empty array for non-existent vendor devices', async () => {
+      const devices = await api.getDevices('non-existent-id')
+      expect(devices).toEqual([])
+    })
+
+    it('should return null for non-existent device', async () => {
+      const device = await api.getDevice('non-existent-vendor', 'non-existent-device')
+      expect(device).toBeNull()
     })
   })
 })
