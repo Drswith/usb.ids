@@ -94,7 +94,7 @@ jobs:
           git config --local user.name "GitHub Action"
 
           # 提交更改
-          git add package.json usb.ids.version.json
+          git add package.json
           git commit -m "chore: update to version $NEW_VERSION"
 
       - name: Create and push tag
