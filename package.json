@@ -1,7 +1,7 @@
 {
   "name": "usb.ids",
   "type": "module",
-  "version": "1.0.1756751167996",
+  "version": "1.0.1756751242553",
   "packageManager": "pnpm@9.15.9",
   "description": "A vite plugin to get USB IDs",
   "author": "Drswith",
