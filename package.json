@@ -21,9 +21,6 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./client": {
-      "types": "./client.d.ts"
-    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.cjs",
@@ -44,8 +41,10 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "dev": "vite",
-    "build": "tsdown",
+    "dev:app": "vite",
+    "build:app": "vite build",
+    "dev:lib": "tsdown --watch",
+    "build:lib": "tsdown",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "fetch-usb-ids": "node ./bin/cli.cjs fetch",
