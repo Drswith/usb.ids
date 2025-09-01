@@ -6,6 +6,14 @@
 
 [![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/github-pages.yml?label=github%20pages)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
 
+<!-- START VERSION PLACEHOLDER -->
+> **📦 Latest Release**
+> **Version:** `1.0.1756734426891`
+> **Updated:** `2025-09-01 13:47:06 UTC`
+> **Status:** ✅ Auto-updated daily
+
+<!-- END VERSION PLACEHOLDER -->
+
 An automated USB device ID database project that provides a CLI tool and data files. It fetches the latest USB.IDS data every 24 hours and publishes updated data files to npm.
 
 ## 🚀 Features

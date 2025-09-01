@@ -89,10 +89,10 @@ jobs:
             usb.ids.version.json
           retention-days: 30
 
-      - name: Update package.json version
+      - name: Update package.json version and README
         if: steps.check-update.outputs.skip != 'true'
         run: |
-          # 从 usb.ids.version.json 获取版本号并去掉 v 前缀
+          # 从 usb.ids.version.json 获取版本号
           NEW_VERSION=$(node -p "require('./usb.ids.version.json').version.replace(/^v/, '')")
           echo "New version: $NEW_VERSION"
 
@@ -104,13 +104,20 @@ jobs:
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
+          # 使用专门的脚本更新 README.md 版本信息
+          pnpm run update-readme-version
+
           # 配置 git 用户信息
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
           # 提交更改
-          git add package.json
-          git commit -m "chore: update to version $NEW_VERSION"
+          git add package.json README.md
+          git commit -m "chore: update to version $NEW_VERSION
+
+          - Updated package.json version to $NEW_VERSION
+          - Updated README.md with latest version info
+          - Data updated automatically"
 
       - name: Create and push tag
         if: steps.check-update.outputs.skip != 'true'

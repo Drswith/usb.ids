@@ -58,7 +58,8 @@
     "typecheck": "tsc --noEmit",
     "prepare": "simple-git-hooks",
     "bumpp": "bumpp",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "update-readme-version": "tsx scripts/update-readme-version.ts"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.2.1",
