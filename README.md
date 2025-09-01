@@ -47,7 +47,10 @@ yarn add usb.ids
 
 ```bash
 # Update USB device data
-usb-ids update
+usb-ids fetch
+
+# Force update USB device data
+usb-ids fetch --force
 
 # Show version information
 usb-ids version
@@ -76,21 +79,21 @@ import path from 'node:path'
 // Read JSON format data
 const jsonData = JSON.parse(
   fs.readFileSync(
-    path.join(process.cwd(), 'node_modules/usb.ids/data/usb.ids.json'),
+    path.join(process.cwd(), 'node_modules/usb.ids/usb.ids.json'),
     'utf8'
   )
 )
 
 // Read raw format data
 const rawData = fs.readFileSync(
-  path.join(process.cwd(), 'node_modules/usb.ids/data/usb.ids'),
+  path.join(process.cwd(), 'node_modules/usb.ids/usb.ids'),
   'utf8'
 )
 
 // Read version information
 const versionInfo = JSON.parse(
   fs.readFileSync(
-    path.join(process.cwd(), 'node_modules/usb.ids/data/version.json'),
+    path.join(process.cwd(), 'node_modules/usb.ids/usb.ids.version.json'),
     'utf8'
   )
 )
@@ -131,11 +134,27 @@ Visit [GitHub Pages](https://drswith.github.io/usb.ids/) to view the USB device 
 
 ```json
 {
-  "vendors": {
-    "1234": {
-      "name": "Vendor Name",
-      "devices": {
-        "5678": "Device Name"
+  "1d6b": {
+    "vendor": "1d6b",
+    "name": "Linux Foundation",
+    "devices": {
+      "0001": {
+        "devid": "0001",
+        "devname": "1.1 root hub"
+      },
+      "0002": {
+        "devid": "0002",
+        "devname": "2.0 root hub"
+      }
+    }
+  },
+  "05ac": {
+    "vendor": "05ac",
+    "name": "Apple, Inc.",
+    "devices": {
+      "12a8": {
+        "devid": "12a8",
+        "devname": "iPhone 5/5C/5S/6/SE/7/8/X"
       }
     }
   }
@@ -159,7 +178,7 @@ Visit [GitHub Pages](https://drswith.github.io/usb.ids/) to view the USB device 
 
 ### Requirements
 
-- Node.js >= 16
+- Node.js >= 18
 - pnpm (recommended)
 
 ### Local Development
@@ -184,9 +203,6 @@ pnpm run dev:app
 # Build Lib
 pnpm run build:lib
 
-# Develop Web UI
-pnpm run dev:app
-
 # Build Web UI
 pnpm run build:app
 
@@ -201,10 +217,14 @@ pnpm run test
 - `pnpm run build:app` - Build web application
 - `pnpm run dev:lib` - Start library development with watch mode
 - `pnpm run build:lib` - Build library
+- `pnpm run build` - Build both library and web application
 - `pnpm run dev:ui` - Start web UI server (equivalent to `usb-ids ui`)
 - `pnpm run test` - Run tests
+- `pnpm run test:watch` - Run tests in watch mode
 - `pnpm run lint` - Run linter
+- `pnpm run lint:fix` - Run linter with auto-fix
 - `pnpm run typecheck` - Run TypeScript type checking
+- `pnpm run release` - Build and publish to npm
 
 ## 📄 License
 

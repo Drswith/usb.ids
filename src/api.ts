@@ -9,8 +9,9 @@
  */
 
 import type { UsbDevice, UsbIdsData, UsbVendor } from './types'
-import { USB_IDS_JSON_FILE, USB_IDS_SOURCE } from './config'
-import { fetchUsbIdsData } from './core'
+import * as path from 'node:path'
+import { USB_IDS_FILE, USB_IDS_JSON_FILE, USB_IDS_SOURCE } from './config'
+import { fetchUsbIdsData, loadJsonFile } from './core'
 
 // 环境兼容的默认根目录
 // 在 Node.js 环境中使用当前工作目录，在浏览器环境中使用相对路径
@@ -35,18 +36,62 @@ initDefaultRoot().catch(() => {
 })
 
 /**
+ * 同步读取本地USB数据文件
+ * 直接复用 core.ts 中的 loadJsonFile 通用函数
+ * 仅在Node.js环境中有效，浏览器环境会抛出错误
+ */
+function loadLocalDataSync(): UsbIdsData {
+  const jsonFilePath = path.resolve(DEFAULT_ROOT, USB_IDS_JSON_FILE)
+
+  try {
+    // 直接复用 core.ts 中的 loadJsonFile 函数
+    const data = loadJsonFile<UsbIdsData>(jsonFilePath)
+
+    if (!data) {
+      throw new Error('本地USB数据文件不存在或无效，请先运行 usb-ids fetch 获取数据')
+    }
+
+    return data
+  }
+  catch (error) {
+    // 增强错误处理：区分浏览器环境和其他错误
+    if (error instanceof Error && error.message.includes('require is not defined')) {
+      throw new Error('浏览器环境不支持同步读取文件，请使用异步函数或传入数据参数')
+    }
+    // 对于文件不存在错误，直接重新抛出
+    if (error instanceof Error && error.message.includes('本地USB数据文件不存在')) {
+      throw error
+    }
+    // 其他错误（如 JSON 解析失败）
+    throw new Error(`无法读取本地USB数据: ${(error as Error).message}`)
+  }
+}
+
+/**
+ * 获取或加载USB数据（同步版本的数据获取策略）
+ */
+function ensureDataSync(data?: UsbIdsData): UsbIdsData {
+  if (data) {
+    return data
+  }
+
+  // 如果没有提供数据，尝试同步读取本地文件
+  return loadLocalDataSync()
+}
+
+/**
  * 获取USB设备数据（统一的数据获取策略）
  * 优先使用本地JSON文件，如果不存在则请求远程数据
  */
 async function ensureData(forceUpdate = false): Promise<UsbIdsData> {
   try {
-    // 统一使用 fetchUsbIdsData，它会自动处理：
-    // 1. 优先检查本地 USB JSON 文件
-    // 2. 如果本地文件不存在或需要更新，则从远程获取
-    // 3. 无论 Node.js 还是浏览器环境都使用相同策略
+    // 参考 cli.ts 中的正确用法：
+    // 1. fetchUsbIdsData 的第二个参数是原始 .ids 文件的 fallback 路径
+    // 2. JSON 数据需要通过 saveUsbIdsToFile 单独保存
+    // 3. 在 API 中，我们只需要使用 fetchUsbIdsData 返回的 data
     const { data } = await fetchUsbIdsData(
       USB_IDS_SOURCE,
-      USB_IDS_JSON_FILE, // 使用配置常量
+      USB_IDS_FILE, // 原始 .ids 文件作为 fallback（相对于 root）
       DEFAULT_ROOT, // 根目录
       forceUpdate, // 是否强制更新
     )
@@ -73,17 +118,14 @@ export async function getVendors(
 /**
  * 获取所有符合条件的供应商（同步版本）
  * @param filter 过滤条件函数或供应商ID
- * @param data USB数据，必须提供
+ * @param data 可选的USB数据，如果不提供则自动读取本地数据
  */
 export function getVendorsSync(
   filter?: string | ((vendor: UsbVendor) => boolean),
   data?: UsbIdsData,
 ): UsbVendor[] {
-  if (!data) {
-    throw new Error('没有可用的USB设备数据，请先调用异步函数获取数据')
-  }
-
-  const vendors = Object.values(data)
+  const usbData = ensureDataSync(data)
+  const vendors = Object.values(usbData)
 
   if (!filter) {
     return vendors
@@ -117,7 +159,7 @@ export async function getVendor(
 /**
  * 获取符合条件的单个供应商（同步版本）
  * @param filter 过滤条件函数或供应商ID
- * @param data 可选的USB数据，如果不提供则使用缓存数据
+ * @param data 可选的USB数据，如果不提供则自动读取本地数据
  */
 export function getVendorSync(
   filter: string | ((vendor: UsbVendor) => boolean),
@@ -146,7 +188,7 @@ export async function getDevices(
  * 获取供应商的所有设备（同步版本）
  * @param vendorId 供应商ID
  * @param filter 可选的设备过滤条件
- * @param data 可选的USB数据
+ * @param data 可选的USB数据，如果不提供则自动读取本地数据
  */
 export function getDevicesSync(
   vendorId: string,
@@ -194,7 +236,7 @@ export async function getDevice(
  * 获取单个设备（同步版本）
  * @param vendorId 供应商ID
  * @param deviceId 设备ID
- * @param data 可选的USB数据
+ * @param data 可选的USB数据，如果不提供则自动读取本地数据
  */
 export function getDeviceSync(
   vendorId: string,
@@ -225,20 +267,17 @@ export async function searchDevices(
 /**
  * 搜索设备（同步版本）
  * @param query 搜索关键词
- * @param data USB数据，必须提供
+ * @param data 可选的USB数据，如果不提供则自动读取本地数据
  */
 export function searchDevicesSync(
   query: string,
   data?: UsbIdsData,
 ): Array<{ vendor: UsbVendor, device: UsbDevice }> {
-  if (!data) {
-    throw new Error('没有可用的USB设备数据，请先调用异步函数获取数据')
-  }
-
+  const usbData = ensureDataSync(data)
   const results: Array<{ vendor: UsbVendor, device: UsbDevice }> = []
   const searchTerm = query.toLowerCase()
 
-  Object.values(data).forEach((vendor) => {
+  Object.values(usbData).forEach((vendor) => {
     Object.values(vendor.devices).forEach((device) => {
       if (
         device.devid.toLowerCase().includes(searchTerm)
@@ -261,4 +300,14 @@ export async function getUsbData(
   forceUpdate = false,
 ): Promise<UsbIdsData> {
   return await ensureData(forceUpdate)
+}
+
+/**
+ * 获取完整的USB设备数据（同步版本）
+ * @param data 可选的USB数据，如果不提供则自动读取本地数据
+ */
+export function getUsbDataSync(
+  data?: UsbIdsData,
+): UsbIdsData {
+  return ensureDataSync(data)
 }

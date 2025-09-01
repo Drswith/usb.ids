@@ -138,17 +138,25 @@ export async function saveVersionInfo(
 }
 
 /**
- * 读取版本信息
+ * 通用的 JSON 文件读取函数
+ * 基于 loadVersionInfo 的模式，但支持泛型
  */
-export function loadVersionInfo(filePath: string): VersionInfo | null {
+export function loadJsonFile<T>(filePath: string): T | null {
   try {
     if (!fs.existsSync(filePath)) {
       return null
     }
     const content = fs.readFileSync(filePath, 'utf8')
-    return JSON.parse(content) as VersionInfo
+    return JSON.parse(content) as T
   }
   catch {
     return null
   }
+}
+
+/**
+ * 读取版本信息
+ */
+export function loadVersionInfo(filePath: string): VersionInfo | null {
+  return loadJsonFile<VersionInfo>(filePath)
 }
