@@ -337,14 +337,52 @@ function updateVersionDisplay(): void {
 
   // 显示获取时间（转换为本地时间）
   const fetchDate = new Date(versionInfo.fetchTime)
-  elements.fetchTime.textContent = fetchDate.toLocaleString()
+  createTimeTooltip(elements.fetchTime, fetchDate, 'Last Updated')
 
   // 计算下次更新时间（下一个UTC 0点）
   const now = new Date()
   const nextUpdateTime = new Date(now)
   nextUpdateTime.setUTCDate(nextUpdateTime.getUTCDate() + 1)
   nextUpdateTime.setUTCHours(0, 0, 0, 0)
-  elements.nextUpdate.textContent = nextUpdateTime.toLocaleString()
+  createTimeTooltip(elements.nextUpdate, nextUpdateTime, 'Next Update')
+}
+
+function createTimeTooltip(element: HTMLElement, date: Date, label: string): void {
+  // 清除现有内容
+  element.innerHTML = ''
+  element.removeAttribute('title')
+
+  // 创建tooltip容器
+  const container = document.createElement('div')
+  container.className = 'tooltip-container'
+
+  // 创建显示的本地时间
+  const timeSpan = document.createElement('span')
+  timeSpan.textContent = date.toLocaleString()
+
+  // 创建tooltip
+  const tooltip = document.createElement('div')
+  tooltip.className = 'tooltip tooltip-utc'
+
+  const tooltipContent = document.createElement('div')
+  tooltipContent.className = 'tooltip-content'
+
+  const tooltipLabel = document.createElement('div')
+  tooltipLabel.className = 'tooltip-label'
+  tooltipLabel.textContent = `${label} (UTC)`
+
+  const tooltipTime = document.createElement('div')
+  tooltipTime.className = 'tooltip-time'
+  tooltipTime.textContent = date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC')
+
+  tooltipContent.appendChild(tooltipLabel)
+  tooltipContent.appendChild(tooltipTime)
+  tooltip.appendChild(tooltipContent)
+
+  container.appendChild(timeSpan)
+  container.appendChild(tooltip)
+
+  element.appendChild(container)
 }
 
 function startCountdown(): void {

@@ -11,13 +11,13 @@ const colors = {
 }
 
 /**
- * 格式化时间戳
+ * 格式化时间戳（使用UTC时间）
  */
 export function formatTimestamp(): string {
   const now = new Date()
-  const hours = now.getHours().toString().padStart(2, '0')
-  const minutes = now.getMinutes().toString().padStart(2, '0')
-  const seconds = now.getSeconds().toString().padStart(2, '0')
+  const hours = now.getUTCHours().toString().padStart(2, '0')
+  const minutes = now.getUTCMinutes().toString().padStart(2, '0')
+  const seconds = now.getUTCSeconds().toString().padStart(2, '0')
   return `${hours}:${minutes}:${seconds}`
 }
 

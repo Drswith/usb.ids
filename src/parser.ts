@@ -63,12 +63,12 @@ export function generateContentHash(content: string): string {
 }
 
 /**
- * 格式化时间戳为可读格式
+ * 格式化时间戳为可读格式（使用UTC时间）
  * @param timestamp 时间戳
  * @returns string 格式化后的时间字符串
  */
 export function formatDateTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
+  return new Date(timestamp).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC')
 }
 
 /**
