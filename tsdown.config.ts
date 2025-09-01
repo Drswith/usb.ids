@@ -27,7 +27,6 @@ export default defineConfig((_) => {
       ...share,
       platform: 'node',
       entry: ['src/cli.ts'],
-      outDir: 'bin',
       format: 'esm',
       dts: false,
     },

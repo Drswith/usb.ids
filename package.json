@@ -27,10 +27,9 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "usb-ids": "./bin/cli.js"
+    "usb-ids": "./dist/cli.js"
   },
   "files": [
-    "bin",
     "dist",
     "usb.ids",
     "usb.ids.json",
@@ -46,7 +45,7 @@
     "build:app": "vite build",
     "dev:lib": "tsdown --watch",
     "build:lib": "tsdown",
-    "build": "run-s build:lib build:app",
+    "build": "run-s \"build:lib --outDir dist\" \"build:app --outDir dist/ui\"",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "fetch-usb-ids": "tsx src/cli.ts fetch",
