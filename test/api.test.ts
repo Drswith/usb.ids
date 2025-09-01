@@ -307,31 +307,24 @@ describe('api functions', () => {
     })
   })
 
-  describe('cache management', () => {
+  describe('cache management (deprecated)', () => {
     describe('clearCache', () => {
-      it('should clear cache', () => {
+      it('should be deprecated and show warning', () => {
+        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
         api.clearCache()
-        const cacheInfo = api.getCacheInfo()
-        expect(cacheInfo.hasCache).toBe(false)
-        expect(cacheInfo.cacheAge).toBe(0)
+        expect(consoleSpy).toHaveBeenCalledWith('clearCache已废弃，缓存管理由core.ts处理')
+        consoleSpy.mockRestore()
       })
     })
 
     describe('getCacheInfo', () => {
-      it('should return correct cache info', async () => {
-        // 首先获取数据以建立缓存
-        await api.getUsbDataAsync()
-
+      it('should be deprecated and return default values', () => {
+        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
         const cacheInfo = api.getCacheInfo()
-        expect(cacheInfo.hasCache).toBe(true)
-        expect(cacheInfo.cacheAge).toBeGreaterThanOrEqual(0)
-      })
-
-      it('should return correct info when no cache', () => {
-        api.clearCache()
-        const cacheInfo = api.getCacheInfo()
+        expect(consoleSpy).toHaveBeenCalledWith('getCacheInfo已废弃，缓存管理由core.ts处理')
         expect(cacheInfo.hasCache).toBe(false)
         expect(cacheInfo.cacheAge).toBe(0)
+        consoleSpy.mockRestore()
       })
     })
   })

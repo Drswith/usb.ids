@@ -23,21 +23,10 @@ initDefaultRoot().catch(() => {
   // 忽略错误，使用默认值
 })
 
-// 缓存数据
-let cachedData: UsbIdsData | null = null
-let cacheTimestamp = 0
-const CACHE_DURATION = 5 * 60 * 1000 // 5分钟缓存
-
 /**
- * 获取或刷新USB设备数据
+ * 获取USB设备数据（直接使用core.ts的缓存机制）
  */
 async function ensureData(forceUpdate = false): Promise<UsbIdsData> {
-  const now = Date.now()
-
-  if (!forceUpdate && cachedData && (now - cacheTimestamp) < CACHE_DURATION) {
-    return cachedData
-  }
-
   try {
     const { data } = await fetchUsbIdsData(
       USB_IDS_SOURCE,
@@ -45,15 +34,9 @@ async function ensureData(forceUpdate = false): Promise<UsbIdsData> {
       DEFAULT_ROOT,
       forceUpdate,
     )
-
-    cachedData = data
-    cacheTimestamp = now
     return data
   }
   catch (error) {
-    if (cachedData) {
-      return cachedData
-    }
     throw new Error(`无法获取USB设备数据: ${(error as Error).message}`)
   }
 }
@@ -61,18 +44,17 @@ async function ensureData(forceUpdate = false): Promise<UsbIdsData> {
 /**
  * 获取所有符合条件的供应商（同步版本）
  * @param filter 过滤条件函数或供应商ID
- * @param data 可选的USB数据，如果不提供则使用缓存数据
+ * @param data USB数据，必须提供
  */
 export function getVendors(
   filter?: string | ((vendor: UsbVendor) => boolean),
   data?: UsbIdsData,
 ): UsbVendor[] {
-  if (!data && !cachedData) {
+  if (!data) {
     throw new Error('没有可用的USB设备数据，请先调用异步函数获取数据')
   }
 
-  const usbData = data || cachedData!
-  const vendors = Object.values(usbData)
+  const vendors = Object.values(data)
 
   if (!filter) {
     return vendors
@@ -158,21 +140,20 @@ export function getDevice(
 /**
  * 搜索设备（同步版本）
  * @param query 搜索关键词
- * @param data 可选的USB数据
+ * @param data USB数据，必须提供
  */
 export function searchDevices(
   query: string,
   data?: UsbIdsData,
 ): Array<{ vendor: UsbVendor, device: UsbDevice }> {
-  if (!data && !cachedData) {
+  if (!data) {
     throw new Error('没有可用的USB设备数据，请先调用异步函数获取数据')
   }
 
-  const usbData = data || cachedData!
   const results: Array<{ vendor: UsbVendor, device: UsbDevice }> = []
   const searchTerm = query.toLowerCase()
 
-  Object.values(usbData).forEach((vendor) => {
+  Object.values(data).forEach((vendor) => {
     Object.values(vendor.devices).forEach((device) => {
       if (
         device.devid.toLowerCase().includes(searchTerm)
@@ -269,19 +250,21 @@ export async function getUsbDataAsync(
 }
 
 /**
- * 清除缓存
+ * 清除缓存（由于缓存逻辑移至core.ts，此函数保留为兼容性接口）
  */
 export function clearCache(): void {
-  cachedData = null
-  cacheTimestamp = 0
+  // 缓存管理已移至core.ts，此函数保留为兼容性接口
+  console.warn('clearCache已废弃，缓存管理由core.ts处理')
 }
 
 /**
- * 获取缓存状态
+ * 获取缓存状态（由于缓存逻辑移至core.ts，此函数保留为兼容性接口）
  */
 export function getCacheInfo(): { hasCache: boolean, cacheAge: number } {
+  // 缓存管理已移至core.ts，此函数保留为兼容性接口
+  console.warn('getCacheInfo已废弃，缓存管理由core.ts处理')
   return {
-    hasCache: cachedData !== null,
-    cacheAge: cachedData ? Date.now() - cacheTimestamp : 0,
+    hasCache: false,
+    cacheAge: 0,
   }
 }

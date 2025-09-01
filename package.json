@@ -41,6 +41,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
+    "postinstall": "pnpm run fetch-usb-ids",
     "dev:app": "vite",
     "build:app": "vite build",
     "dev:lib": "tsdown --watch",
