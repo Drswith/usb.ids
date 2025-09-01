@@ -6,9 +6,10 @@
  */
 
 import * as fs from 'node:fs'
+import { createServer } from 'node:http'
 import * as path from 'node:path'
 import * as process from 'node:process'
-import { USB_IDS_SOURCE } from './config'
+import { UI_LOCAL_BASE_URL, USB_IDS_SOURCE } from './config'
 import { fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile, saveVersionInfo } from './core'
 import { shouldUpdate } from './parser'
 import { logger } from './utils'
@@ -136,6 +137,112 @@ export function checkUpdate(): void {
 }
 
 /**
+ * 启动静态web服务器
+ */
+export async function startWebServer(port = 3000): Promise<void> {
+  try {
+    const root = process.cwd()
+    const distDir = path.join(root, 'dist', 'ui')
+
+    // 检查dist/ui目录是否存在
+    if (!fs.existsSync(distDir)) {
+      logger.error('dist/ui目录不存在，请先运行构建命令: pnpm run build:app')
+      process.exit(1)
+    }
+
+    // 创建HTTP服务器
+    const server = createServer((req, res) => {
+      console.log('req url', req.url)
+      // 重定向根路径到UI_LOCAL_BASE_URL
+      if (req.url === '/') {
+        res.writeHead(302, {
+          Location: UI_LOCAL_BASE_URL,
+        })
+        res.end()
+        return
+      }
+
+      let filePath = path.join(distDir, req.url === UI_LOCAL_BASE_URL
+        ? 'index.html'
+        : req.url?.replace(UI_LOCAL_BASE_URL, '') || '')
+
+      console.log('file path', filePath)
+
+      // 安全检查，防止路径遍历攻击
+      if (!filePath.startsWith(distDir)) {
+        res.writeHead(403)
+        res.end('Forbidden')
+        return
+      }
+
+      // 处理usb.ids.json和usb.ids.version.json
+      if (filePath.includes('usb.ids.json') || filePath.includes('usb.ids.version.json')) {
+        // usb.ids.json和usb.ids.version.json与在dist同级目录
+        filePath = path.join(root, req.url!.replace(UI_LOCAL_BASE_URL, ''))
+        console.log('json file path', filePath)
+      }
+
+      // 如果文件不存在，返回index.html（用于SPA路由）
+      if (!fs.existsSync(filePath)) {
+        filePath = path.join(distDir, 'index.html')
+      }
+
+      // 读取文件
+      fs.readFile(filePath, (err, data) => {
+        if (err) {
+          res.writeHead(404)
+          res.end('Not Found')
+          return
+        }
+
+        // 设置Content-Type
+        const ext = path.extname(filePath)
+        const contentType = {
+          '.html': 'text/html',
+          '.js': 'application/javascript',
+          '.css': 'text/css',
+          '.json': 'application/json',
+          '.png': 'image/png',
+          '.jpg': 'image/jpeg',
+          '.gif': 'image/gif',
+          '.svg': 'image/svg+xml',
+          '.ico': 'image/x-icon',
+        }[ext] || 'text/plain'
+
+        res.writeHead(200, { 'Content-Type': contentType })
+        res.end(data)
+      })
+    })
+
+    // 启动服务器
+    server.listen(port, () => {
+      logger.success(`usb.ids Web UI服务器已启动！`)
+      logger.info(`访问地址: http://localhost:${port}${UI_LOCAL_BASE_URL}`)
+      logger.info('按 Control+C 停止服务器')
+    })
+
+    // 保持服务器运行，直到手动停止
+    return new Promise<void>((resolve, reject) => {
+      // 监听服务器错误
+      server.on('error', (error) => {
+        logger.error(`服务器错误: ${error.message}`)
+        reject(error)
+      })
+
+      // 服务器关闭时resolve Promise
+      server.on('close', () => {
+        logger.success('服务器已停止')
+        resolve()
+      })
+    })
+  }
+  catch (error) {
+    logger.error(`启动web服务器失败: ${(error as Error).message}`)
+    process.exit(1)
+  }
+}
+
+/**
  * 显示帮助信息
  */
 export function showHelp(): void {
@@ -150,16 +257,20 @@ USB设备数据管理工具
   update, fetch    更新USB设备数据
   version, info    显示当前版本信息
   check           检查是否需要更新
+  ui              启动web界面服务器
   help            显示此帮助信息
 
 选项:
   --force         强制更新（忽略时间检查）
+  --port <port>   指定web服务器端口（默认3000）
 
 示例:
   usb-ids update
   usb-ids update --force
   usb-ids version
   usb-ids check
+  usb-ids ui
+  usb-ids ui --port 8080
 `)
 }
 
@@ -184,6 +295,23 @@ export async function runCli(): Promise<void> {
     case 'check':
       checkUpdate()
       break
+
+    case 'ui': {
+      // 解析端口参数
+      const portIndex = args.indexOf('--port')
+      let port = 3000
+      if (portIndex !== -1 && args[portIndex + 1]) {
+        const parsedPort = Number.parseInt(args[portIndex + 1], 10)
+        if (!Number.isNaN(parsedPort) && parsedPort > 0 && parsedPort < 65536) {
+          port = parsedPort
+        }
+        else {
+          logger.error('无效的端口号，使用默认端口3000')
+        }
+      }
+      await startWebServer(port)
+      break
+    }
 
     case 'help':
     case '--help':

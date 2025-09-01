@@ -28,7 +28,7 @@ export default defineConfig((_) => {
       platform: 'node',
       entry: ['src/cli.ts'],
       outDir: 'bin',
-      format: 'cjs',
+      format: 'esm',
       dts: false,
     },
   ]

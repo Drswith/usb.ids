@@ -1,4 +1,5 @@
 import type { UsbDevice, UsbIdsData, UsbVendor, VersionInfo } from '../src/types'
+import { UI_LOCAL_BASE_URL } from '../src/config'
 import './styles.css'
 
 // 类型定义
@@ -15,6 +16,8 @@ interface SearchOptions {
 
 // 全局变量
 const version = import.meta.env.VERSION || 'latest'
+const useLocalData = import.meta.env.BASE_URL === UI_LOCAL_BASE_URL
+
 let currentData: UsbIdsData = {}
 let currentResults: DeviceResult[] = []
 let currentPage = 1
@@ -267,7 +270,7 @@ function updateStats(): void {
   }
 }
 
-// 版本信息相关函数
+// 远程数据获取
 async function loadDataFromNpm<T>(version: string, file: string): Promise<T> {
   try {
     // 从npm CDN获取指定版本的file
@@ -298,9 +301,25 @@ async function loadDataFromNpm<T>(version: string, file: string): Promise<T> {
   }
 }
 
+async function loadDataFromLocal<T>(file: string): Promise<T> {
+  try {
+    const response = await fetch(file)
+    if (response.ok) {
+      return await response.json() as T
+    }
+    else {
+      throw new Error(`Failed to fetch from local: ${response.status}`)
+    }
+  }
+  catch (error) {
+    console.warn('Failed to load local data:', error)
+    return {} as T
+  }
+}
+
 async function loadVersionInfo(): Promise<void> {
   try {
-    versionInfo = await loadDataFromNpm<VersionInfo>(version, 'usb.ids.version.json')
+    versionInfo = useLocalData ? await loadDataFromLocal<VersionInfo>('usb.ids.version.json') : await loadDataFromNpm<VersionInfo>(version, 'usb.ids.version.json')
     updateVersionDisplay()
     startCountdown()
   }
@@ -505,8 +524,8 @@ async function initializeApp(): Promise<void> {
       countdown: document.getElementById('countdown') as HTMLElement,
     }
 
-    // 异步加载USB IDs数据 - 从最新的npm包获取
-    const usbIdsData = await loadDataFromNpm<UsbIdsData>(version, 'usb.ids.json')
+    // 异步加载USB IDs数据
+    const usbIdsData = useLocalData ? await loadDataFromLocal<UsbIdsData>('usb.ids.json') : await loadDataFromNpm<UsbIdsData>(version, 'usb.ids.json')
     console.log('USB IDs Data loaded:', usbIdsData)
 
     // 设置数据

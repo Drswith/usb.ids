@@ -27,7 +27,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "usb-ids": "./bin/cli.cjs"
+    "usb-ids": "./bin/cli.js"
   },
   "files": [
     "bin",
@@ -42,7 +42,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev:app": "vite",
-    "build:app": "vite build",
+    "build:app": "vite build --outDir dist/ui",
     "dev:lib": "tsdown --watch",
     "build:lib": "tsdown",
     "lint": "eslint",
@@ -50,6 +50,7 @@
     "fetch-usb-ids": "node ./bin/cli.cjs fetch",
     "version-info": "node ./bin/cli.cjs version",
     "check-update": "node ./bin/cli.cjs check",
+    "ui": "tsx src/cli.ts ui",
     "release": "bumpp && pnpm publish",
     "start": "tsx src/index.ts",
     "test": "vitest run",
