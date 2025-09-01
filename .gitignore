@@ -147,6 +147,7 @@ vite.config.ts.timestamp-*
 *.tgz
 coverage
 dist
+bin
 lib-cov
 logs
 node_modules
