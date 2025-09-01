@@ -1,4 +1,4 @@
-import type { UsbDevice, UsbIdsData, UsbVendor, VersionInfo } from '../plugins/plugin-usb-ids/typing'
+import type { UsbDevice, UsbIdsData, UsbVendor, VersionInfo } from '../src/types'
 import './styles.css'
 
 // 类型定义
@@ -14,6 +14,7 @@ interface SearchOptions {
 }
 
 // 全局变量
+const version = import.meta.env.VERSION || 'latest'
 let currentData: UsbIdsData = {}
 let currentResults: DeviceResult[] = []
 let currentPage = 1
@@ -267,14 +268,41 @@ function updateStats(): void {
 }
 
 // 版本信息相关函数
+async function loadDataFromNpm<T>(version: string, file: string): Promise<T> {
+  try {
+    // 从npm CDN获取指定版本的file
+    const response = await fetch(`https://unpkg.com/usb.ids@${version}/${file}`)
+    if (response.ok) {
+      const data = await response.json() as T
+      console.log(`Loaded ${file} from npm CDN (version: ${version})`)
+      return data
+    }
+    else {
+      throw new Error(`Failed to fetch from npm CDN: ${response.status}`)
+    }
+  }
+  catch (error) {
+    console.warn('Failed to load USB IDs from npm, falling back to local data:', error)
+    // 如果从npm获取失败，尝试加载本地数据作为fallback
+    try {
+      const fallbackResponse = await fetch(`${import.meta.env.BASE_URL}${file}`)
+      if (fallbackResponse.ok) {
+        return await fallbackResponse.json() as T
+      }
+    }
+    catch (fallbackError) {
+      console.error('Failed to load fallback data:', fallbackError)
+    }
+    // 如果都失败了，返回空对象
+    return {} as T
+  }
+}
+
 async function loadVersionInfo(): Promise<void> {
   try {
-    const response = await fetch(`${import.meta.env.BASE_URL}usb.ids.version.json`)
-    if (response.ok) {
-      versionInfo = await response.json() as VersionInfo
-      updateVersionDisplay()
-      startCountdown()
-    }
+    versionInfo = await loadDataFromNpm<VersionInfo>(version, 'usb.ids.version.json')
+    updateVersionDisplay()
+    startCountdown()
   }
   catch (error) {
     console.warn('Failed to load version info:', error)
@@ -477,9 +505,8 @@ async function initializeApp(): Promise<void> {
       countdown: document.getElementById('countdown') as HTMLElement,
     }
 
-    // 异步加载USB IDs数据
-    const usbIdsModule = await import('virtual:usb-ids')
-    const usbIdsData = usbIdsModule.default
+    // 异步加载USB IDs数据 - 从最新的npm包获取
+    const usbIdsData = await loadDataFromNpm<UsbIdsData>(version, 'usb.ids.json')
     console.log('USB IDs Data loaded:', usbIdsData)
 
     // 设置数据

@@ -1,7 +1,6 @@
-import path from 'node:path'
 import process from 'node:process'
 import { defineConfig, loadEnv } from 'vite'
-import usbIdsPlugin from './plugins/plugin-usb-ids'
+import pkg from './package.json'
 
 export default defineConfig(({ command }) => {
   const env = loadEnv(command, process.cwd())
@@ -9,14 +8,13 @@ export default defineConfig(({ command }) => {
   const base = env.VITE_BASE_PATH || '/'
   console.log('vite base ', base)
 
+  const version = pkg.version
+
   return {
     base,
-    plugins: [
-      usbIdsPlugin({
-        fallbackFile: path.resolve(__dirname, 'usb.ids.json'),
-        skipInDev: true,
-      }),
-    ],
+    define: {
+      'import.meta.env.VERSION': JSON.stringify(version),
+    },
     build: {
       chunkSizeWarningLimit: 2048,
     },
