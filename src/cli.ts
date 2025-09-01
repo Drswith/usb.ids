@@ -143,7 +143,7 @@ async function startWebServer(port = 3000): Promise<void> {
   try {
     const root = process.cwd()
     let distDir = path.join(root, 'node_modules', 'usb.ids', 'dist', 'ui')
-    let isProd = true
+    let isProd = import.meta.env?.NODE_ENV === 'production'
     if (!fs.existsSync(distDir)) {
       logger.warn('node_modules/usb-ids/dist/ui directory does not exist, trying to use dist/ui instead')
       distDir = path.join(root, 'dist', 'ui')
@@ -158,7 +158,6 @@ async function startWebServer(port = 3000): Promise<void> {
 
     // 创建HTTP服务器
     const server = createServer((req, res) => {
-      console.log('req url', req.url)
       // 重定向根路径到UI_LOCAL_BASE_URL
       if (req.url === '/') {
         res.writeHead(302, {
@@ -171,8 +170,6 @@ async function startWebServer(port = 3000): Promise<void> {
       let filePath = path.join(distDir, req.url === UI_LOCAL_BASE_URL
         ? 'index.html'
         : req.url?.replace(UI_LOCAL_BASE_URL, '') || '')
-
-      console.log('file path', filePath)
 
       // 安全检查，防止路径遍历攻击
       if (!filePath.startsWith(distDir)) {
@@ -188,7 +185,6 @@ async function startWebServer(port = 3000): Promise<void> {
         = isProd
             ? path.join(root, 'node_modules', 'usb.ids', req.url!.replace(UI_LOCAL_BASE_URL, ''))
             : path.join(root, req.url!.replace(UI_LOCAL_BASE_URL, ''))
-        console.log('json file path', filePath)
       }
 
       // 如果文件不存在，返回index.html（用于SPA路由）

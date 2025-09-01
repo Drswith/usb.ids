@@ -44,7 +44,7 @@
     "dev:app": "vite",
     "build:app": "vite build",
     "dev:lib": "tsdown --watch",
-    "build:lib": "tsdown",
+    "build:lib": "tsdown --env.NODE_ENV=production",
     "build": "run-s \"build:lib --outDir dist\" \"build:app --outDir dist/ui\"",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
