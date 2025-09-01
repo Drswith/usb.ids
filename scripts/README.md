@@ -52,11 +52,17 @@ tsx scripts/update-readme-version.ts
 The script updates README.md with a styled version block:
 
 ```markdown
-> **📦 Latest Release**
->
-> **Version:** `1.0.xxxxx`
-> **Updated:** `YYYY-MM-DD HH:MM:SS UTC`
-> **Status:** ✅ Auto-updated daily
+<div align="center">
+
+### 📦 Latest Release
+
+| Field | Value |
+|----------|-------|
+| **Version** | `1.0.xxxxx` |
+| **Updated** | `YYYY-MM-DD HH:MM:SS UTC` |
+| **Status** | ✅ Auto-updated daily |
+
+</div>
 ```
 
 ---

@@ -1,20 +1,26 @@
 # usb.ids
 
-[![npm version](https://img.shields.io/npm/v/usb.ids)](https://www.npmjs.com/package/usb.ids)
-
-[![Auto Update](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/auto-update.yml?label=auto%20update)](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml)
-
-[![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/github-pages.yml?label=github%20pages)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
-
 <!-- START VERSION PLACEHOLDER -->
 
-> **📦 Latest Release**
->
-> **Version:** `1.0.1756751606174`
-> **Updated:** `2025-09-01 18:33:26 UTC`
-> **Status:** ✅ Auto-updated daily
+<div align="center">
+
+### 📦 Latest Release
+
+| Field | Value |
+|-------|-------|
+| **Version** | `1.0.1756734426891` |
+| **Updated** | `2025-09-01 13:47:06 UTC` |
+| **Status** | ✅ Auto-updated daily |
+
+</div>
 
 <!-- END VERSION PLACEHOLDER -->
+
+<div align="center">
+
+[![npm version](https://img.shields.io/npm/v/usb.ids)](https://www.npmjs.com/package/usb.ids) [![Auto Update](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/auto-update.yml?label=auto%20update)](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml) [![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/github-pages.yml?label=github%20pages)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
+
+</div>
 
 An automated USB device ID database project that provides a CLI tool and data files. It fetches the latest USB.IDS data every 24 hours and publishes updated data files to npm.
 
@@ -80,37 +86,6 @@ usb-ids ui --port 8080
 
 # Show help
 usb-ids help
-```
-
-### Accessing Data Files
-
-After installing the package, you can access the data files directly:
-
-```javascript
-import fs from 'node:fs'
-import path from 'node:path'
-
-// Read JSON format data
-const jsonData = JSON.parse(
-  fs.readFileSync(
-    path.join(process.cwd(), 'node_modules/usb.ids/usb.ids.json'),
-    'utf8'
-  )
-)
-
-// Read raw format data
-const rawData = fs.readFileSync(
-  path.join(process.cwd(), 'node_modules/usb.ids/usb.ids'),
-  'utf8'
-)
-
-// Read version information
-const versionInfo = JSON.parse(
-  fs.readFileSync(
-    path.join(process.cwd(), 'node_modules/usb.ids/usb.ids.version.json'),
-    'utf8'
-  )
-)
 ```
 
 ### Using the API Library
