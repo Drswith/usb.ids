@@ -111,6 +111,12 @@ jobs:
           git push origin main
           git push origin "$TAG_VERSION"
 
+      - name: Generate changelog
+        if: steps.check-update.outputs.skip != 'true'
+        run: pnpm dlx changelogithub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish to npm
         if: steps.check-update.outputs.skip != 'true'
         run: pnpm publish --no-git-checks
