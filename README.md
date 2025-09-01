@@ -1,21 +1,37 @@
 # usb.ids
 
-[![npm version](https://badge.fury.io/js/usb.ids.svg)](https://badge.fury.io/js/usb.ids)
-[![Auto Update](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml/badge.svg)](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml)
-[![GitHub Pages](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml/badge.svg)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
+[![npm version](https://img.shields.io/npm/v/usb.ids)](https://www.npmjs.com/package/usb.ids)
 
-An automated USB device ID database project that fetches the latest USB.IDS data every 24 hours and publishes it to npm.
+[![Auto Update](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/auto-update.yml?label=auto%20update)](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml)
+
+[![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/github-pages.yml?label=github%20pages)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
+
+An automated USB device ID database project that provides a CLI tool and data files. It fetches the latest USB.IDS data every 24 hours and publishes updated data files to npm.
 
 ## 🚀 Features
 
+- **CLI Tool**: Command-line interface for managing USB device data
 - **Auto Update**: Automatically checks and fetches the latest USB.IDS data every 24 hours
-- **Multi-format Support**: Provides both raw format and JSON format data
-- **npm Publishing**: Automatically publishes to npm package manager
+- **Multi-format Support**: Provides both raw format and JSON format data files
+- **Web Interface**: Built-in web server for browsing and searching USB device data
+- **npm Distribution**: Distributes data files through npm package manager
 - **GitHub Pages**: Provides online viewing interface
 - **Version Management**: Smart version control based on content hash
 - **Data Statistics**: Provides vendor and device count statistics
 
 ## 📦 Installation
+
+### As a CLI Tool
+
+```bash
+npm install -g usb.ids
+# or
+pnpm add -g usb.ids
+# or
+yarn global add usb.ids
+```
+
+### As a Data Package
 
 ```bash
 npm install usb.ids
@@ -27,14 +43,57 @@ yarn add usb.ids
 
 ## 🔧 Usage
 
-### Use as npm package
+### CLI Commands
+
+```bash
+# Update USB device data
+usb-ids update
+
+# Show version information
+usb-ids version
+
+# Check for updates
+usb-ids check
+
+# Start web interface (default port: 3000)
+usb-ids ui
+
+# Start web interface on custom port
+usb-ids ui --port 8080
+
+# Show help
+usb-ids help
+```
+
+### Accessing Data Files
+
+After installing the package, you can access the data files directly:
 
 ```javascript
-import { getUsbIds } from 'usb.ids'
+import fs from 'node:fs'
+import path from 'node:path'
 
-// Get USB device data
-const usbData = await getUsbIds()
-console.log(usbData)
+// Read JSON format data
+const jsonData = JSON.parse(
+  fs.readFileSync(
+    path.join(process.cwd(), 'node_modules/usb.ids/data/usb.ids.json'),
+    'utf8'
+  )
+)
+
+// Read raw format data
+const rawData = fs.readFileSync(
+  path.join(process.cwd(), 'node_modules/usb.ids/data/usb.ids'),
+  'utf8'
+)
+
+// Read version information
+const versionInfo = JSON.parse(
+  fs.readFileSync(
+    path.join(process.cwd(), 'node_modules/usb.ids/data/version.json'),
+    'utf8'
+  )
+)
 ```
 
 ### Direct access to data files
@@ -116,11 +175,20 @@ pnpm install
 # Fetch latest data
 pnpm run fetch-usb-ids
 
-# Start development server
-pnpm run dev
+# Develop Lib
+pnpm run dev:lib
 
-# Build project
-pnpm run build
+# Develop Web UI
+pnpm run dev:app
+
+# Build Lib
+pnpm run build:lib
+
+# Develop Web UI
+pnpm run dev:app
+
+# Build Web UI
+pnpm run build:app
 
 # Run tests
 pnpm run test
@@ -129,11 +197,14 @@ pnpm run test
 ### Script Commands
 
 - `pnpm run fetch-usb-ids` - Fetch the latest USB.IDS data
-- `pnpm run version-info` - Generate version information
-- `pnpm run check-update` - Check for updates
-- `pnpm run dev` - Start development server
-- `pnpm run build` - Build project
+- `pnpm run dev:app` - Start web app development server
+- `pnpm run build:app` - Build web application
+- `pnpm run dev:lib` - Start library development with watch mode
+- `pnpm run build:lib` - Build library
+- `pnpm run dev:ui` - Start web UI server (equivalent to `usb-ids ui`)
 - `pnpm run test` - Run tests
+- `pnpm run lint` - Run linter
+- `pnpm run typecheck` - Run TypeScript type checking
 
 ## 📄 License
 
