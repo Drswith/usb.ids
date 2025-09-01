@@ -142,7 +142,7 @@ function checkUpdate(): void {
 async function startWebServer(port = 3000): Promise<void> {
   try {
     const root = process.cwd()
-    let distDir = path.join(root, 'node_modules', 'usb-ids', 'dist', 'ui')
+    let distDir = path.join(root, 'node_modules', 'usb.ids', 'dist', 'ui')
 
     if (!fs.existsSync(distDir)) {
       logger.warn('node_modules/usb-ids/dist/ui directory does not exist, trying to use dist/ui instead')
