@@ -333,7 +333,9 @@ function updateVersionDisplay(): void {
     return
 
   // 显示版本号（带v前缀）
-  elements.versionNumber.textContent = `v${versionInfo.version}`
+  elements.versionNumber.textContent = versionInfo?.version?.startsWith('v')
+    ? versionInfo.version
+    : `v${versionInfo.version}`
 
   // 显示获取时间（转换为本地时间）
   const fetchDate = new Date(versionInfo.fetchTime)
