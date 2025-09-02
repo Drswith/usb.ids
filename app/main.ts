@@ -339,11 +339,17 @@ function updateVersionDisplay(): void {
   const fetchDate = new Date(versionInfo.fetchTime)
   createTimeTooltip(elements.fetchTime, fetchDate, 'Last Updated')
 
-  // 计算下次更新时间（下一个UTC 0点）
+  // 计算下次更新时间（下一个UTC 2:30）
   const now = new Date()
   const nextUpdateTime = new Date(now)
-  nextUpdateTime.setUTCDate(nextUpdateTime.getUTCDate() + 1)
-  nextUpdateTime.setUTCHours(0, 0, 0, 0)
+
+  // 设置为今天的UTC 2:30
+  nextUpdateTime.setUTCHours(2, 30, 0, 0)
+
+  // 如果当前时间已经过了今天的UTC 2:30，则设置为明天的UTC 2:30
+  if (now.getTime() >= nextUpdateTime.getTime()) {
+    nextUpdateTime.setUTCDate(nextUpdateTime.getUTCDate() + 1)
+  }
   createTimeTooltip(elements.nextUpdate, nextUpdateTime, 'Next Update')
 }
 
@@ -401,8 +407,14 @@ function startCountdown(): void {
 
     const now = new Date()
     const nextUpdateTime = new Date(now)
-    nextUpdateTime.setUTCDate(nextUpdateTime.getUTCDate() + 1)
-    nextUpdateTime.setUTCHours(0, 0, 0, 0)
+
+    // 设置为今天的UTC 2:30
+    nextUpdateTime.setUTCHours(2, 30, 0, 0)
+
+    // 如果当前时间已经过了今天的UTC 2:30，则设置为明天的UTC 2:30
+    if (now.getTime() >= nextUpdateTime.getTime()) {
+      nextUpdateTime.setUTCDate(nextUpdateTime.getUTCDate() + 1)
+    }
     const timeLeft = nextUpdateTime.getTime() - now.getTime()
 
     if (timeLeft <= 0) {
