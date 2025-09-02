@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.1756772540265",
   "packageManager": "pnpm@9.15.9",
-  "description": "A vite plugin to get USB IDs",
+  "description": "An automated USB ID's database project that provides a CLI tool and data files. It fetches the latest USB ID's data every 24 hours and publishes updated data files to npm.",
   "author": "Drswith",
   "license": "MIT",
   "funding": "https://github.com/sponsors/Drswith",
