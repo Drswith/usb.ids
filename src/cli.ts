@@ -12,7 +12,7 @@ import * as process from 'node:process'
 import { UI_LOCAL_BASE_URL, USB_IDS_FILE, USB_IDS_JSON_FILE, USB_IDS_SOURCE, USB_IDS_VERSION_JSON_FILE } from './config'
 import { fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile, saveVersionInfo } from './core'
 import { shouldUpdate } from './parser'
-import { logger } from './utils'
+import { colors, logger } from './utils'
 
 /**
  * 主要的数据更新函数
@@ -156,14 +156,21 @@ async function startWebServer(port = 3000): Promise<void> {
       process.exit(1)
     }
 
+    function logResp(statusCode: number, start: number, success = true): void {
+      logger.info(`${colors.yellow}HTTP${colors.reset} ${success ? colors.green : colors.red}Returned ${statusCode} in ${Date.now() - start} ms${colors.reset}`)
+    }
+
     // 创建HTTP服务器
     const server = createServer((req, res) => {
+      const startTime = Date.now()
+      logger.info(`${colors.yellow}HTTP${colors.reset} ${colors.cyan}${req.method} ${req.url}${colors.reset}`)
       // 重定向根路径到UI_LOCAL_BASE_URL
       if (req.url === '/') {
         res.writeHead(302, {
           Location: UI_LOCAL_BASE_URL,
         })
         res.end()
+        logResp(302, startTime)
         return
       }
 
@@ -175,6 +182,7 @@ async function startWebServer(port = 3000): Promise<void> {
       if (!filePath.startsWith(distDir)) {
         res.writeHead(403)
         res.end('Forbidden')
+        logResp(403, startTime, false)
         return
       }
 
@@ -197,6 +205,7 @@ async function startWebServer(port = 3000): Promise<void> {
         if (err) {
           res.writeHead(404)
           res.end('Not Found')
+          logResp(404, startTime, false)
           return
         }
 
@@ -216,14 +225,15 @@ async function startWebServer(port = 3000): Promise<void> {
 
         res.writeHead(200, { 'Content-Type': contentType })
         res.end(data)
+        logResp(200, startTime)
       })
     })
 
     // 启动服务器
     server.listen(port, () => {
-      logger.success(`usb.ids Web UI server started!`)
-      logger.info(`Access URL: http://localhost:${port}${UI_LOCAL_BASE_URL}`)
-      logger.info('Press Control+C to stop the server')
+      logger.success(`usb.ids Web UI ${colors.green}server started!${colors.reset}`)
+      logger.info(`Access URL: ${colors.cyan}http://localhost:${port}${UI_LOCAL_BASE_URL}${colors.reset}`)
+      logger.info(`Press ${colors.yellow}Control+C${colors.reset} to ${colors.yellow}stop${colors.reset} the server`)
     })
 
     // 保持服务器运行，直到手动停止

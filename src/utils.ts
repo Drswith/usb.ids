@@ -1,8 +1,9 @@
 /**
  * ANSI 颜色代码
  */
-const colors = {
+export const colors = {
   reset: '\x1B[0m',
+  bold: '\x1B[1m',
   cyan: '\x1B[36m',
   green: '\x1B[32m',
   blue: '\x1B[34m',
