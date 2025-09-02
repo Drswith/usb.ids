@@ -18,7 +18,7 @@
 
 <div align="center">
 
-[![npm version](https://img.shields.io/npm/v/usb.ids)](https://www.npmjs.com/package/usb.ids) [![Auto Update](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/auto-update.yml?label=auto%20update)](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml) [![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/github-pages.yml?label=github%20pages)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
+[![npm version](https://img.shields.io/npm/v/usb.ids)](https://www.npmjs.com/package/usb.ids) [![npm downloads](https://img.shields.io/npm/dm/usb.ids)](https://www.npmjs.com/package/usb.ids) [![Auto Update](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/auto-update.yml?label=auto%20update)](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml) [![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/github-pages.yml?label=github%20pages)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
 
 </div>
 
