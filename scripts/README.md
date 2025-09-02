@@ -6,10 +6,10 @@ This directory contains utility scripts for the USB.IDS project. Each script ser
 
 ### `diff-hash.ts`
 
-Compares content hashes between remote USB.IDS data and local processed data to determine if an update is needed. Designed for use in GitHub Actions workflow.
+Compares content hashes between remote USB.IDS data and the published npm package to determine if an update is needed. Designed for use in GitHub Actions workflow.
 
 #### Purpose
-Determines whether the automated update workflow should proceed by comparing the content hash of remote USB.IDS data with the hash from the local version file. This approach avoids circular dependency logic and provides more reliable change detection.
+Determines whether the automated update workflow should proceed by comparing the content hash of remote USB.IDS data with the hash from the latest published npm package.
 
 #### Usage
 
@@ -23,33 +23,24 @@ tsx scripts/diff-hash.ts
 
 #### What it does
 
-1. Reads local version information from `usb.ids.version.json` file
-2. Downloads remote USB.IDS data from official sources using `downloadFromUrls()` from `src/fetcher.ts`
-3. Calculates content hash using `generateContentHash()` from `src/parser.ts`
-4. Compares the local and remote content hashes
+1. Downloads remote USB.IDS data from official sources using `downloadFromUrls()` from `src/fetcher.ts`
+2. Calculates content hash using `generateContentHash()` from `src/parser.ts`
+3. Fetches version information from the latest npm package
+4. Compares the content hashes
 5. Exits with appropriate exit codes for shell script integration
-
-#### Comparison Strategy
-
-- **Local baseline**: Uses the local `usb.ids.version.json` file as the comparison baseline
-- **Avoids circular logic**: No longer depends on npm package for version comparison
-- **First-run handling**: Automatically triggers update if no local version file exists
-- **Content-driven**: Only content changes trigger updates, not timestamps
 
 #### Exit Codes
 
 - **0**: No update needed (content hashes match)
-- **1**: Update needed (content hashes differ, no local version, or error occurred)
+- **1**: Update needed (content hashes differ or error occurred)
 
 #### Key Features
 
 - **Shell Integration**: Designed for use in GitHub Actions workflows
 - **Error Handling**: Gracefully handles network errors and missing data
-- **Code Reuse**: Leverages existing functions from `src/core.ts`, `src/fetcher.ts`, `src/parser.ts`, and `src/utils.ts`
-- **Functional Programming**: Uses pure functions and functional programming style
+- **Code Reuse**: Leverages existing functions from `src/fetcher.ts`, `src/parser.ts`, and `src/utils.ts`
 - **Detailed Logging**: Provides clear status messages for debugging
 - **Content-based Detection**: Uses SHA256 hash comparison for accurate change detection
-- **Consistent Logic**: Reuses `loadVersionInfo()` from core.ts for file operations
 
 #### GitHub Actions Integration
 

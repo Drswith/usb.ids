@@ -1,8 +1,9 @@
 #!/usr/bin/env tsx
 
 /**
- * USB.IDS数据哈希差异检查脚本
- * 该脚本用于GitHub Actions工作流中，通过比较远程数据与npm包中的contentHash来判断是否需要更新
+ * 版本更新检查脚本
+ * 该脚本用于GitHub Actions工作流中，检查远程USB.IDS数据是否需要更新
+ * 通过比较远程数据的contentHash与npm包中的contentHash来判断
  */
 
 import { USB_IDS_SOURCE } from '../src/config'
@@ -64,11 +65,11 @@ async function getRemoteContentHash(): Promise<string | null> {
 }
 
 /**
- * 主函数：比较哈希差异
+ * 主函数：检查是否需要更新
  */
-async function diffHash(): Promise<void> {
+async function checkVersionUpdate(): Promise<void> {
   try {
-    logger.start('Comparing content hashes...')
+    logger.start('Checking if version update is needed...')
 
     // 获取npm包版本信息
     const npmInfo = await getNpmVersionInfo()
@@ -88,25 +89,25 @@ async function diffHash(): Promise<void> {
 
     // 比较hash值
     if (remoteHash === npmInfo.contentHash) {
-      logger.success('No difference found, content hash is the same')
+      logger.success('No update needed, content hash is the same')
       process.exit(0) // 退出码0表示不需要更新
     }
     else {
-      logger.info('Hash difference detected')
+      logger.info('Update needed, content hash is different')
       logger.info(`Remote: ${remoteHash}`)
       logger.info(`NPM:    ${npmInfo.contentHash}`)
       process.exit(1) // 退出码1表示需要更新
     }
   }
   catch (error) {
-    logger.error(`Hash comparison failed: ${(error as Error).message}`)
+    logger.error(`Version check failed: ${(error as Error).message}`)
     process.exit(1) // 出错时也强制更新
   }
 }
 
 // 当直接运行此脚本时执行检查
 if (import.meta.url === `file://${process.argv[1]}`) {
-  diffHash()
+  checkVersionUpdate()
 }
 
-export { diffHash }
+export { checkVersionUpdate }
