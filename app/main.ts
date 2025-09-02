@@ -14,6 +14,11 @@ interface SearchOptions {
   searchType: 'all' | 'vendor' | 'device'
 }
 
+if (import.meta.env?.DEV) {
+  // 在网站title添加[DEV]
+  document.title = `[DEV] ${document.title}`
+}
+
 // 全局变量
 const version = import.meta.env.VERSION || 'latest'
 const useLocalData = import.meta.env.BASE_URL === UI_LOCAL_BASE_URL

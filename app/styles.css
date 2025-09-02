@@ -1188,3 +1188,141 @@ html {
     font-size: 1.5rem;
   }
 }
+
+/* Footer styles */
+.footer {
+  background: var(--surface-color);
+  border-top: 1px solid var(--border-color);
+  margin-top: 3rem;
+  padding: 2rem 0 1.5rem;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.footer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footer-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  padding: 0.25rem 0;
+  transition: var(--transition);
+  border-radius: var(--radius-sm);
+}
+
+.footer-link:hover {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.footer-link:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.footer-link:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.link-icon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: var(--transition);
+}
+
+.footer-link:hover .link-icon {
+  opacity: 1;
+  color: var(--primary-color);
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+}
+
+.footer-copyright {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.footer-copyright p {
+  font-size: 0.75rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.footer-copyright p + p {
+  margin-top: 0.25rem;
+}
+
+.footer-note {
+  opacity: 0.8;
+}
+
+/* Footer responsive styles */
+@media (max-width: 768px) {
+  .footer {
+    padding: 1.5rem 0 1rem;
+    margin-top: 2rem;
+  }
+  
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .footer-section {
+    text-align: center;
+  }
+  
+  .footer-links {
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 1rem 0 0.75rem;
+    margin-top: 1.5rem;
+  }
+  
+  .footer-content {
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .footer-bottom {
+    padding-top: 1rem;
+  }
+}
