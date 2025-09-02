@@ -28,12 +28,12 @@ An automated USB device ID database project that provides a CLI tool and data fi
 
 - **CLI Tool**: Command-line interface for managing USB device data
 - **Modern API Library**: Async-first API with TypeScript support and pure function tools
-- **Auto Update**: Automatically checks and fetches the latest USB.IDS data every 24 hours
+- **Auto Update**: Automatically checks and fetches the latest USB.IDS data every 24 hours with smart content comparison
 - **Multi-format Support**: Provides both raw format and JSON format data files
 - **Web Interface**: Built-in web server for browsing and searching USB device data
 - **npm Distribution**: Distributes data files through npm package manager
 - **GitHub Pages**: Provides online viewing interface
-- **Version Management**: Smart version control based on content hash
+- **Version Management**: Smart version control based on content hash with optimized update detection
 - **Data Statistics**: Provides vendor and device count statistics
 - **Environment Compatibility**: Works in both Node.js and browser environments
 - **Advanced Filtering**: Support for string, function, and object-based filtering
@@ -184,13 +184,33 @@ Visit [GitHub Pages](https://drswith.github.io/usb.ids/) to view the USB device 
 
 ### Data Update Workflow
 
-1. **Scheduled Trigger**: Automatically executes daily at UTC 0:00
-2. **Data Fetching**: Fetches the latest USB.IDS data from official sources
-3. **Change Detection**: Detects data updates through content hash
-4. **Version Generation**: Generates new version numbers based on timestamps
-5. **Build & Publish**: Automatically builds and publishes to npm
-6. **GitHub Release**: Creates GitHub release versions
-7. **Pages Deployment**: Updates GitHub Pages website
+1. **Scheduled Trigger**: Automatically executes daily at UTC 2:30
+2. **Version Check**: Compares remote data content hash with the latest published npm package
+   - Downloads remote USB.IDS data without saving
+   - Calculates content hash of remote data
+   - Compares with content hash from latest npm package version
+   - Only proceeds if content has actually changed
+3. **Data Fetching**: Fetches and saves the latest USB.IDS data (only when update needed)
+4. **Change Detection**: Smart detection prevents unnecessary updates and builds
+5. **Version Generation**: Generates new version numbers based on timestamps
+6. **Build & Publish**: Automatically builds and publishes to npm
+7. **GitHub Release**: Creates GitHub release versions
+8. **Pages Deployment**: Updates GitHub Pages website
+
+### Scheduling Details
+
+- **Execution Time**: Daily at UTC 2:30 (02:30)
+- **Timezone**: UTC (Coordinated Universal Time)
+- **Frequency**: Once per day
+- **Timeout**: Maximum 30 minutes per execution
+- **Resource Optimization**: Scheduled during off-peak hours to minimize delays
+- **Smart Updates**: Only executes full workflow when data actually changes
+
+> **Why not UTC 0:00?**
+> UTC 0:00 (midnight) is the most popular time for scheduled tasks across GitHub. This creates resource contention and can cause significant delays (often 20+ minutes). By scheduling at UTC 2:30, we ensure more reliable and timely execution.
+
+> **Smart Version Checking Strategy**
+> The workflow now uses an optimized version checking strategy that compares content hashes before processing. This prevents unnecessary builds and publishes when the upstream data hasn't changed, significantly reducing CI/CD resource usage and avoiding version pollution.
 
 ### Data Sources
 
@@ -248,7 +268,7 @@ Visit [GitHub Pages](https://drswith.github.io/usb.ids/) to view the USB device 
 ### Requirements
 
 - Node.js >= 18
-- pnpm (recommended)
+- pnpm
 
 ### Local Development
 
@@ -269,11 +289,8 @@ pnpm run dev:lib
 # Develop Web UI
 pnpm run dev:app
 
-# Build Lib
-pnpm run build:lib
-
-# Build Web UI
-pnpm run build:app
+# Build Project
+pnpm run build
 
 # Run tests
 pnpm run test

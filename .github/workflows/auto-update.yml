@@ -7,14 +7,20 @@ permissions:
 
 on:
   schedule:
-    # 每天UTC 0点执行
-    - cron: '0 0 * * *'
+    # 每天UTC 2:30执行（避开高峰期）
+    - cron: '30 2 * * *'
   workflow_dispatch: # 允许手动触发
 
 jobs:
   auto-update:
     runs-on: ubuntu-latest
+    timeout-minutes: 30 # 设置超时时间为30分钟
     steps:
+      - name: Record execution time
+        run: |
+          echo "Workflow started at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Scheduled time was: $(date -u -d 'today 02:30' '+%Y-%m-%d %H:%M:%S UTC')"
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -24,7 +30,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: lts/*
+          cache: pnpm
           registry-url: 'https://registry.npmjs.org'
 
       - name: Setup pnpm
@@ -35,17 +42,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Fetch USB IDs
-        run: pnpm run fetch-usb-ids
-
       - name: Check if update is needed
         id: check-update
         run: |
-          # 获取当前生成的 contentHash
-          CURRENT_HASH=$(node -p "require('./usb.ids.version.json').contentHash")
-          echo "Current hash: $CURRENT_HASH"
-
-          # 创建临时目录并安装最新版本的 usb.ids 包
+          # 获取npm最新版本的contentHash作为基准
           mkdir -p /tmp/npm-check
           cd /tmp/npm-check
           npm install usb.ids --silent 2>/dev/null || true
@@ -62,13 +62,32 @@ jobs:
           cd /
           rm -rf /tmp/npm-check
 
-          if [ "$CURRENT_HASH" = "$NPM_HASH" ] && [ -n "$NPM_HASH" ]; then
-            echo "No update needed, contentHash is the same"
-            echo "skip=true" >> $GITHUB_OUTPUT
+          # 回到工作目录，获取远程数据但不保存，只计算hash
+          cd $GITHUB_WORKSPACE
+
+          # 下载远程数据并计算contentHash（不保存文件）
+          REMOTE_CONTENT=$(curl -s "http://www.linux-usb.org/usb.ids" || curl -s "https://raw.githubusercontent.com/systemd/systemd/main/hwdb.d/usb.ids" || echo "")
+
+          if [ -n "$REMOTE_CONTENT" ]; then
+            # 使用Node.js计算SHA256 hash
+            REMOTE_HASH=$(node -e "const crypto = require('crypto'); console.log(crypto.createHash('sha256').update(process.argv[1]).digest('hex'));" "$REMOTE_CONTENT")
+            echo "Remote hash: $REMOTE_HASH"
+
+            if [ "$REMOTE_HASH" = "$NPM_HASH" ] && [ -n "$NPM_HASH" ]; then
+              echo "No update needed, contentHash is the same"
+              echo "skip=true" >> $GITHUB_OUTPUT
+            else
+              echo "Update needed, contentHash is different or no previous version"
+              echo "skip=false" >> $GITHUB_OUTPUT
+            fi
           else
-            echo "Update needed, contentHash is different"
+            echo "Failed to fetch remote data, forcing update"
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Fetch USB IDs
+        if: steps.check-update.outputs.skip != 'true'
+        run: pnpm run fetch-usb-ids
 
       - name: Build Lib
         if: steps.check-update.outputs.skip != 'true'
