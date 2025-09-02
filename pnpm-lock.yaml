@@ -20,9 +20,6 @@ importers:
       '@types/node':
         specifier: ^22.13.10
         version: 22.13.10
-      '@vue/tsconfig':
-        specifier: ^0.7.0
-        version: 0.7.0(typescript@5.8.2)
       bumpp:
         specifier: ^10.1.0
         version: 10.1.0
@@ -798,17 +795,6 @@ packages:
 
   '@vue/shared@3.5.13':
     resolution: {integrity: sha512-/hnE/qP5ZoGpol0a5mDi45bOd7t3tjYJBjsgCsivow7D48cJeV5l05RD82lPqi7gRiphZM37rnhW1l6ZoCNNnQ==}
-
-  '@vue/tsconfig@0.7.0':
-    resolution: {integrity: sha512-ku2uNz5MaZ9IerPPUyOHzyjhXoX2kVJaVf7hL315DC17vS6IiZRmmCPfggNbU16QTvM80+uYYy3eYJB59WCtvg==}
-    peerDependencies:
-      typescript: 5.x
-      vue: ^3.4.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-      vue:
-        optional: true
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -3197,10 +3183,6 @@ snapshots:
       '@vue/shared': 3.5.13
 
   '@vue/shared@3.5.13': {}
-
-  '@vue/tsconfig@0.7.0(typescript@5.8.2)':
-    optionalDependencies:
-      typescript: 5.8.2
 
   acorn-jsx@5.3.2(acorn@8.14.0):
     dependencies:
