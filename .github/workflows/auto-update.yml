@@ -42,17 +42,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # - name: Check if update is needed
-      #   id: check-update
-      #   run: |
-      #     # 使用TypeScript脚本进行哈希差异检查，避免shell参数过长问题
-      #     if pnpm run diff-hash; then
-      #       echo "No update needed, content hash is the same"
-      #       echo "skip=true" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "Update needed, content hash is different or error occurred"
-      #       echo "skip=false" >> $GITHUB_OUTPUT
-      #     fi
+      - name: Check if update is needed
+        id: check-update
+        run: |
+          # 使用TypeScript脚本进行哈希差异检查，避免shell参数过长问题
+          if pnpm run diff-hash; then
+            echo "No update needed, content hash is the same"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Update needed, content hash is different or error occurred"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Fetch USB IDs
         if: steps.check-update.outputs.skip != 'true'
