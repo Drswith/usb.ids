@@ -661,6 +661,12 @@ function cleanup(): void {
 
 // 启动应用
 if (globalThis.window) {
+  // 动态更新版权年份
+  const copyrightYear = document.getElementById('copyrightYear')
+  if (copyrightYear) {
+    copyrightYear.textContent = new Date().getFullYear().toString()
+  }
+
   // 等待DOM加载完成
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp)
