@@ -10,6 +10,17 @@ on:
     # 每天UTC 2:30执行（避开高峰期）
     - cron: '30 2 * * *'
   workflow_dispatch: # 允许手动触发
+    inputs:
+      skip_update:
+        description: Skip update check and force skip all operations
+        required: false
+        default: 'false'
+        type: boolean
+      force_update:
+        description: Force update even if no changes detected
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   auto-update:
@@ -45,13 +56,38 @@ jobs:
       - name: Check if update is needed
         id: check-update
         run: |
-          # 使用TypeScript脚本进行哈希差异检查，避免shell参数过长问题
-          if pnpm run diff-hash; then
-            echo "No update needed, content hash is the same"
-            echo "skip=true" >> $GITHUB_OUTPUT
+          # 检查触发方式和用户输入参数
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual trigger detected"
+
+            # 检查用户是否选择跳过更新
+            if [ "${{ github.event.inputs.skip_update }}" = "true" ]; then
+              echo "User chose to skip update check, skipping all operations"
+              echo "skip=true" >> $GITHUB_OUTPUT
+            elif [ "${{ github.event.inputs.force_update }}" = "true" ]; then
+              echo "User chose to force update, skipping hash check"
+              echo "skip=false" >> $GITHUB_OUTPUT
+            else
+              echo "User chose default behavior, checking for updates..."
+              # 使用TypeScript脚本进行哈希差异检查，避免shell参数过长问题
+              if pnpm run diff-hash; then
+                echo "No update needed, content hash is the same"
+                echo "skip=true" >> $GITHUB_OUTPUT
+              else
+                echo "Update needed, content hash is different or error occurred"
+                echo "skip=false" >> $GITHUB_OUTPUT
+              fi
+            fi
           else
-            echo "Update needed, content hash is different or error occurred"
-            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "Scheduled trigger detected, checking for updates..."
+            # 使用TypeScript脚本进行哈希差异检查，避免shell参数过长问题
+            if pnpm run diff-hash; then
+              echo "No update needed, content hash is the same"
+              echo "skip=true" >> $GITHUB_OUTPUT
+            else
+              echo "Update needed, content hash is different or error occurred"
+              echo "skip=false" >> $GITHUB_OUTPUT
+            fi
           fi
 
       - name: Fetch USB IDs
