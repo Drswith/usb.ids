@@ -1,15 +1,15 @@
 # Scripts Directory
 
-This directory contains utility scripts for the USB.IDS project. Each script serves a specific purpose in the project's automation and maintenance workflow.
+This directory contains utility scripts for the USB ID's project. Each script serves a specific purpose in the project's automation and maintenance workflow.
 
 ## Available Scripts
 
 ### `diff-hash.ts`
 
-Compares content hashes between remote USB.IDS data and the published npm package to determine if an update is needed. Designed for use in GitHub Actions workflow.
+Compares content hashes between remote USB ID's data and the published npm package to determine if an update is needed. Designed for use in GitHub Actions workflow.
 
 #### Purpose
-Determines whether the automated update workflow should proceed by comparing the content hash of remote USB.IDS data with the hash from the latest published npm package.
+Determines whether the automated update workflow should proceed by comparing the content hash of remote USB ID's data with the hash from the latest published npm package.
 
 #### Usage
 
@@ -23,7 +23,7 @@ tsx scripts/diff-hash.ts
 
 #### What it does
 
-1. Downloads remote USB.IDS data from official sources using `downloadFromUrls()` from `src/fetcher.ts`
+1. Downloads remote USB ID's data from official sources using `downloadFromUrls()` from `src/fetcher.ts`
 2. Calculates content hash using `generateContentHash()` from `src/parser.ts`
 3. Fetches version information from the latest npm package
 4. Compares the content hashes

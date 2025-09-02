@@ -24,7 +24,7 @@ async function updateUsbIdsData(forceUpdate = false): Promise<void> {
     const jsonFile = path.join(root, USB_IDS_JSON_FILE)
     const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE)
 
-    logger.start('Starting USB device data update...')
+    logger.start('Starting USB ID\'s data update...')
 
     // 检查是否需要更新
     const currentVersionInfo = loadVersionInfo(versionFile)
@@ -34,7 +34,7 @@ async function updateUsbIdsData(forceUpdate = false): Promise<void> {
     }
 
     // 获取USB设备数据
-    logger.info('Fetching USB device data...')
+    logger.info('Fetching USB ID\'s data...')
     const { data, source, versionInfo } = await fetchUsbIdsData(
       USB_IDS_SOURCE,
       fallbackFile,
@@ -259,7 +259,7 @@ Usage:
   or: node bin/cli.js <command> [options]
 
 Commands:
-  update, fetch    Update USB device data
+  update, fetch    Update USB ID's data
   version, info    Show current version information
   check           Check if update is needed
   ui              Start web interface server

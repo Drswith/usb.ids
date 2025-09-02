@@ -22,15 +22,15 @@
 
 </div>
 
-An automated USB device ID database project that provides a CLI tool and data files. It fetches the latest USB.IDS data every 24 hours and publishes updated data files to npm.
+An automated USB ID's database project that provides a CLI tool and data files. It fetches the latest USB ID's data every 24 hours and publishes updated data files to npm.
 
 ## 🚀 Features
 
-- **CLI Tool**: Command-line interface for managing USB device data
+- **CLI Tool**: Command-line interface for managing USB ID's data
 - **Modern API Library**: Async-first API with TypeScript support and pure function tools
-- **Auto Update**: Automatically checks and fetches the latest USB.IDS data every 24 hours with smart content comparison
+- **Auto Update**: Automatically checks and fetches the latest USB ID's data every 24 hours with smart content comparison
 - **Multi-format Support**: Provides both raw format and JSON format data files
-- **Web Interface**: Built-in web server for browsing and searching USB device data
+- **Web Interface**: Built-in web server for browsing and searching USB ID's data
 - **npm Distribution**: Distributes data files through npm package manager
 - **GitHub Pages**: Provides online viewing interface
 - **Version Management**: Smart version control based on content hash with optimized update detection
@@ -66,10 +66,10 @@ yarn add usb.ids
 ### CLI Commands
 
 ```bash
-# Update USB device data
+# Update USB ID's data
 usb-ids fetch
 
-# Force update USB device data
+# Force update USB ID's data
 usb-ids fetch --force
 
 # Show version information
@@ -90,7 +90,7 @@ usb-ids help
 
 ### Using the API Library
 
-The package provides a modern async API for accessing USB device data:
+The package provides a modern async API for accessing USB ID's data:
 
 ```javascript
 import {
@@ -172,13 +172,13 @@ const device = await getDevice('05ac', '12a8', true)
 
 The project provides the following data files:
 
-- `usb.ids` - Raw format USB device data
-- `usb.ids.json` - JSON format USB device data
+- `usb.ids` - Raw format USB ID's data
+- `usb.ids.json` - JSON format USB ID's data
 - `usb.ids.version.json` - Version information and statistics
 
 ## 🌐 Online Viewing
 
-Visit [GitHub Pages](https://drswith.github.io/usb.ids/) to view the USB device database online.
+Visit [GitHub Pages](https://drswith.github.io/usb.ids/) to view the USB ID's database online.
 
 ## 🤖 Automation Process
 
@@ -186,11 +186,11 @@ Visit [GitHub Pages](https://drswith.github.io/usb.ids/) to view the USB device 
 
 1. **Scheduled Trigger**: Automatically executes daily at UTC 2:30
 2. **Version Check**: Compares remote data content hash with the latest published npm package
-   - Downloads remote USB.IDS data without saving
+   - Downloads remote USB ID's data without saving
    - Calculates content hash of remote data
    - Compares with content hash from latest npm package version
    - Only proceeds if content has actually changed
-3. **Data Fetching**: Fetches and saves the latest USB.IDS data (only when update needed)
+3. **Data Fetching**: Fetches and saves the latest USB ID's data (only when update needed)
 4. **Change Detection**: Smart detection prevents unnecessary updates and builds
 5. **Version Generation**: Generates new version numbers based on timestamps
 6. **Build & Publish**: Automatically builds and publishes to npm
@@ -298,7 +298,7 @@ pnpm run test
 
 ### Script Commands
 
-- `pnpm run fetch-usb-ids` - Fetch the latest USB.IDS data
+- `pnpm run fetch-usb-ids` - Fetch the latest USB ID's data
 - `pnpm run dev:app` - Start web app development server
 - `pnpm run build:app` - Build web application
 - `pnpm run dev:lib` - Start library development with watch mode
@@ -330,4 +330,4 @@ Issues and Pull Requests are welcome!
 - [npm package](https://www.npmjs.com/package/usb.ids)
 - [GitHub repository](https://github.com/Drswith/usb.ids)
 - [Online viewing](https://drswith.github.io/usb.ids/)
-- [USB.IDS official website](http://www.linux-usb.org/usb.ids)
+- [USB ID's official website](http://www.linux-usb.org/usb.ids)

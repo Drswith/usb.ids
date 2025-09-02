@@ -90,7 +90,7 @@ export type DeviceFilter =
 // ===============================
 
 /**
- * Get USB device data (unified data acquisition strategy)
+ * Get USB ID's data (unified data acquisition strategy)
  * Prioritize local JSON files, fetch remote data if not available
  */
 async function ensureData(forceUpdate = false): Promise<UsbIdsData> {
@@ -105,7 +105,7 @@ async function ensureData(forceUpdate = false): Promise<UsbIdsData> {
   }
   catch (error) {
     throw createApiError(
-      `Failed to fetch USB device data: ${(error as Error).message}`,
+      `Failed to fetch USB ID's data: ${(error as Error).message}`,
       ERROR_CODES.NETWORK_ERROR,
       error as Error,
     )
@@ -326,7 +326,7 @@ export async function searchDevices(
 }
 
 /**
- * Get complete USB device data
+ * Get complete USB ID's data
  * @param forceUpdate Whether to force data update
  */
 export async function getUsbData(

@@ -148,7 +148,7 @@ describe('browser Environment API Tests', () => {
       // Re-import the module
       const { getVendors } = await import('../src/api')
 
-      await expect(getVendors()).rejects.toThrow('Failed to fetch USB device data')
+      await expect(getVendors()).rejects.toThrow('Failed to fetch USB ID\'s data')
     })
 
     it('should handle force update parameter correctly', async () => {

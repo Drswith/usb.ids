@@ -285,7 +285,7 @@ async function loadDataFromNpm<T>(version: string, file: string): Promise<T> {
     }
   }
   catch (error) {
-    console.warn('Failed to load USB IDs from npm, falling back to local data:', error)
+    console.warn('Failed to load USB ID\'s from npm, falling back to local data:', error)
     // 如果从npm获取失败，尝试加载本地数据作为fallback
     try {
       const fallbackResponse = await fetch(`${import.meta.env.BASE_URL}${file}`)
@@ -576,9 +576,9 @@ async function initializeApp(): Promise<void> {
       countdown: document.getElementById('countdown') as HTMLElement,
     }
 
-    // 异步加载USB IDs数据
+    // 异步加载USB ID's数据
     const usbIdsData = useLocalData ? await loadDataFromLocal<UsbIdsData>(USB_IDS_JSON_FILE) : await loadDataFromNpm<UsbIdsData>(version, USB_IDS_JSON_FILE)
-    console.log('USB IDs Data loaded:', usbIdsData)
+    console.log('USB ID\'s Data loaded:', usbIdsData)
 
     // 设置数据
     currentData = usbIdsData as UsbIdsData
@@ -609,7 +609,7 @@ async function initializeApp(): Promise<void> {
     hideLoadingState()
   }
   catch (error) {
-    console.error('Failed to load USB IDs data:', error)
+    console.error('Failed to load USB ID\'s data:', error)
     hideLoadingState()
     showEmptyState()
   }
