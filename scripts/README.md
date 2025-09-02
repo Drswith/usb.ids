@@ -4,6 +4,66 @@ This directory contains utility scripts for the USB.IDS project. Each script ser
 
 ## Available Scripts
 
+### `diff-hash.ts`
+
+Compares content hashes between remote USB.IDS data and local processed data to determine if an update is needed. Designed for use in GitHub Actions workflow.
+
+#### Purpose
+Determines whether the automated update workflow should proceed by comparing the content hash of remote USB.IDS data with the hash from the local version file. This approach avoids circular dependency logic and provides more reliable change detection.
+
+#### Usage
+
+```bash
+# Run using npm script (recommended)
+pnpm run diff-hash
+
+# Or run directly with tsx
+tsx scripts/diff-hash.ts
+```
+
+#### What it does
+
+1. Reads local version information from `usb.ids.version.json` file
+2. Downloads remote USB.IDS data from official sources using `downloadFromUrls()` from `src/fetcher.ts`
+3. Calculates content hash using `generateContentHash()` from `src/parser.ts`
+4. Compares the local and remote content hashes
+5. Exits with appropriate exit codes for shell script integration
+
+#### Comparison Strategy
+
+- **Local baseline**: Uses the local `usb.ids.version.json` file as the comparison baseline
+- **Avoids circular logic**: No longer depends on npm package for version comparison
+- **First-run handling**: Automatically triggers update if no local version file exists
+- **Content-driven**: Only content changes trigger updates, not timestamps
+
+#### Exit Codes
+
+- **0**: No update needed (content hashes match)
+- **1**: Update needed (content hashes differ, no local version, or error occurred)
+
+#### Key Features
+
+- **Shell Integration**: Designed for use in GitHub Actions workflows
+- **Error Handling**: Gracefully handles network errors and missing data
+- **Code Reuse**: Leverages existing functions from `src/core.ts`, `src/fetcher.ts`, `src/parser.ts`, and `src/utils.ts`
+- **Functional Programming**: Uses pure functions and functional programming style
+- **Detailed Logging**: Provides clear status messages for debugging
+- **Content-based Detection**: Uses SHA256 hash comparison for accurate change detection
+- **Consistent Logic**: Reuses `loadVersionInfo()` from core.ts for file operations
+
+#### GitHub Actions Integration
+
+```yaml
+- name: Check if update is needed
+  id: check-update
+  run: |
+    if pnpm run diff-hash; then
+      echo "skip=true" >> $GITHUB_OUTPUT
+    else
+      echo "skip=false" >> $GITHUB_OUTPUT
+    fi
+```
+
 ### `update-readme-version.ts`
 
 Updates the version information in the project's README.md file based on data from `usb.ids.version.json`.
