@@ -2,6 +2,7 @@
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import * as process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { USB_IDS_VERSION_JSON_FILE } from '../src/config.js'
 import { loadVersionInfo } from '../src/core.js'

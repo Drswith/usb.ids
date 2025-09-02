@@ -25,15 +25,15 @@ import { fetchUsbIdsData } from './core'
  * Reliable environment detection
  */
 function isNodeEnvironment(): boolean {
-  return typeof process !== 'undefined'
-    && process.versions
-    && process.versions.node !== undefined
+  // eslint-disable-next-line node/prefer-global/process
+  return typeof process !== 'undefined' && process.versions && process.versions.node !== undefined
 }
 
 /**
  * Get environment-adapted root directory
  */
 function getEnvironmentRoot(): string {
+  // eslint-disable-next-line node/prefer-global/process
   return isNodeEnvironment() ? process.cwd() : '.'
 }
 

@@ -5,6 +5,7 @@
  * 该脚本用于GitHub Actions工作流中，通过比较远程数据与npm包中的contentHash来判断是否需要更新
  */
 
+import * as process from 'node:process'
 import { USB_IDS_SOURCE } from '../src/config'
 import { downloadFromUrls } from '../src/fetcher'
 import { generateContentHash } from '../src/parser'
