@@ -58,7 +58,7 @@
     "prepare": "simple-git-hooks",
     "bumpp": "bumpp",
     "lint-staged": "lint-staged",
-    "update-readme-version": "tsx scripts/update-readme-version.ts",
+
     "diff-hash": "tsx scripts/diff-hash.ts"
   },
   "devDependencies": {

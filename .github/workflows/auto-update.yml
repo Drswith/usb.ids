@@ -7,8 +7,8 @@ permissions:
 
 on:
   schedule:
-    # 每天UTC 2:30执行（避开高峰期）
-    - cron: '30 2 * * *'
+    # 每天UTC 0:00执行
+    - cron: '0 0 * * *'
   workflow_dispatch: # 允许手动触发
     inputs:
       update_mode:
@@ -131,19 +131,15 @@ jobs:
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
-          # 使用专门的脚本更新 README.md 版本信息
-          pnpm run update-readme-version
-
           # 配置 git 用户信息
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
           # 提交更改
-          git add package.json README.md
+          git add package.json
           git commit -m "chore: update to version $NEW_VERSION
 
           - Updated package.json version to $NEW_VERSION
-          - Updated README.md with latest version info
           - Data updated automatically"
 
       - name: Create and push tag

@@ -1,24 +1,10 @@
 # usb.ids
 
-<!-- START VERSION PLACEHOLDER -->
-
 <div align="center">
 
-### 📦 Latest Release
+[![npm version](https://img.shields.io/npm/v/usb.ids)](https://www.npmjs.com/package/usb.ids) [![npm downloads](https://img.shields.io/npm/dm/usb.ids)](https://www.npmjs.com/package/usb.ids)
 
-| Field | Value |
-|-------|-------|
-| **Version** | `1.0.1756814433827` |
-| **Updated** | `2025-09-02 12:00:33 UTC` |
-| **Status** | ✅ Auto-updated daily |
-
-</div>
-
-<!-- END VERSION PLACEHOLDER -->
-
-<div align="center">
-
-[![npm version](https://img.shields.io/npm/v/usb.ids)](https://www.npmjs.com/package/usb.ids) [![npm downloads](https://img.shields.io/npm/dm/usb.ids)](https://www.npmjs.com/package/usb.ids) [![Auto Update](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/auto-update.yml?label=auto%20update)](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml) [![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/github-pages.yml?label=github%20pages)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
+[![Last Updated](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Funpkg.com%2Fusb.ids%2Fusb.ids.version.json&query=%24.fetchTimeFormatted&label=latest%20release&color=blue)](https://www.npmjs.com/package/usb.ids) [![Auto Update](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/auto-update.yml?label=auto%20update)](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml) [![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/github-pages.yml?label=github%20pages)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
 
 </div>
 
@@ -184,7 +170,7 @@ Visit [GitHub Pages](https://drswith.github.io/usb.ids/) to view the USB ID's da
 
 ### Data Update Workflow
 
-1. **Scheduled Trigger**: Automatically executes daily at UTC 2:30
+1. **Scheduled Trigger**: Automatically executes daily at UTC 0:00
 2. **Version Check**: Compares remote data content hash with the latest published npm package
    - Downloads remote USB ID's data without saving
    - Calculates content hash of remote data
@@ -199,15 +185,12 @@ Visit [GitHub Pages](https://drswith.github.io/usb.ids/) to view the USB ID's da
 
 ### Scheduling Details
 
-- **Execution Time**: Daily at UTC 2:30 (02:30)
+- **Execution Time**: Daily at UTC 0:00 (00:00)
 - **Timezone**: UTC (Coordinated Universal Time)
 - **Frequency**: Once per day
 - **Timeout**: Maximum 30 minutes per execution
-- **Resource Optimization**: Scheduled during off-peak hours to minimize delays
 - **Smart Updates**: Only executes full workflow when data actually changes
-
-> **Why not UTC 0:00?**
-> UTC 0:00 (midnight) is the most popular time for scheduled tasks across GitHub. This creates resource contention and can cause significant delays (often 20+ minutes). By scheduling at UTC 2:30, we ensure more reliable and timely execution.
+- **Execution Precision**: Based on GitHub Actions scheduled workflows, timing precision may vary and execution may be delayed
 
 > **Smart Version Checking Strategy**
 > The workflow now uses an optimized version checking strategy that compares content hashes before processing. This prevents unnecessary builds and publishes when the upstream data hasn't changed, significantly reducing CI/CD resource usage and avoiding version pollution.
