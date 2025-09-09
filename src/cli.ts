@@ -9,7 +9,7 @@ import * as fs from 'node:fs'
 import { createServer } from 'node:http'
 import * as path from 'node:path'
 import * as process from 'node:process'
-import { UI_LOCAL_BASE_URL, USB_IDS_FILE, USB_IDS_JSON_FILE, USB_IDS_SOURCE, USB_IDS_VERSION_JSON_FILE } from './config'
+import { UI_LOCAL_BASE_URL, USB_IDS_JSON_FILE, USB_IDS_SOURCE, USB_IDS_VERSION_JSON_FILE } from './config'
 import { fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile, saveVersionInfo } from './core'
 import { shouldUpdate } from './parser'
 import { colors, logger } from './utils'
@@ -20,7 +20,7 @@ import { colors, logger } from './utils'
 async function updateUsbIdsData(forceUpdate = false): Promise<void> {
   try {
     const root = process.cwd()
-    const fallbackFile = path.join(root, USB_IDS_FILE)
+    const fallbackFile = path.join(root, USB_IDS_JSON_FILE)
     const jsonFile = path.join(root, USB_IDS_JSON_FILE)
     const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE)
 
