@@ -11,7 +11,6 @@ interface DeviceResult {
 
 interface SearchOptions {
   query: string
-  searchType: 'all' | 'vendor' | 'device'
 }
 
 if (import.meta.env?.DEV) {
@@ -28,17 +27,14 @@ let currentResults: DeviceResult[] = []
 let currentPage = 1
 let itemsPerPage = 50
 let versionInfo: VersionInfo | null = null
-let countdownInterval: NodeJS.Timeout | null = null
 
 // DOM元素（延迟初始化）
 let elements: {
   searchInput: HTMLInputElement
   clearSearch: HTMLButtonElement
-  searchTypeRadios: NodeListOf<HTMLInputElement>
   headerTotalVendors: HTMLElement
   headerTotalDevices: HTMLElement
-  searchResults: HTMLElement
-  searchResultsText: HTMLElement
+
   loadingState: HTMLElement
   emptyState: HTMLElement
   resultsList: HTMLElement
@@ -51,8 +47,6 @@ let elements: {
   pageJumpBtn: HTMLButtonElement
   versionNumber: HTMLElement
   fetchTime: HTMLElement
-  nextUpdate: HTMLElement
-  countdown: HTMLElement
 }
 
 // 工具函数
@@ -65,16 +59,15 @@ function debounce<T extends (...args: any[]) => void>(func: T, wait: number): T 
 }
 
 // URL参数处理函数
-function getUrlParams(): { query: string, searchType: 'all' | 'vendor' | 'device', page: number } {
+function getUrlParams(): { query: string, page: number } {
   const urlParams = new URLSearchParams(window.location.search)
   return {
     query: urlParams.get('q') || '',
-    searchType: (urlParams.get('type') as 'all' | 'vendor' | 'device') || 'all',
     page: Number.parseInt(urlParams.get('pageNum') || '1', 10),
   }
 }
 
-function updateUrlParams(query: string, searchType: 'all' | 'vendor' | 'device', page: number): void {
+function updateUrlParams(query: string, page: number): void {
   const url = new URL(window.location.href)
 
   if (query) {
@@ -82,13 +75,6 @@ function updateUrlParams(query: string, searchType: 'all' | 'vendor' | 'device',
   }
   else {
     url.searchParams.delete('q')
-  }
-
-  if (searchType !== 'all') {
-    url.searchParams.set('type', searchType)
-  }
-  else {
-    url.searchParams.delete('type')
   }
 
   // 始终添加分页参数，包括第一页
@@ -111,7 +97,7 @@ function normalizeText(text: string): string {
 
 // 搜索功能
 function searchUsbData(options: SearchOptions): DeviceResult[] {
-  const { query, searchType } = options
+  const { query } = options
   const normalizedQuery = normalizeText(query)
 
   const results: DeviceResult[] = []
@@ -133,7 +119,7 @@ function searchUsbData(options: SearchOptions): DeviceResult[] {
         shouldInclude = true
         matchType = 'vendor'
       }
-      else if (searchType === 'all') {
+      else {
         if ((vendorIdMatch || vendorNameMatch) && (deviceIdMatch || deviceNameMatch)) {
           matchType = 'both'
           shouldInclude = true
@@ -143,18 +129,6 @@ function searchUsbData(options: SearchOptions): DeviceResult[] {
           shouldInclude = true
         }
         else if (deviceIdMatch || deviceNameMatch) {
-          matchType = 'device'
-          shouldInclude = true
-        }
-      }
-      else if (searchType === 'vendor') {
-        if (vendorIdMatch || vendorNameMatch) {
-          matchType = 'vendor'
-          shouldInclude = true
-        }
-      }
-      else if (searchType === 'device') {
-        if (deviceIdMatch || deviceNameMatch) {
           matchType = 'device'
           shouldInclude = true
         }
@@ -263,16 +237,6 @@ function updateStats(): void {
 
   elements.headerTotalVendors.textContent = vendorCount.toLocaleString()
   elements.headerTotalDevices.textContent = deviceCount.toLocaleString()
-  elements.searchResults.textContent = currentResults.length.toLocaleString()
-
-  // 更新搜索结果文本，重点展示设备数量
-  const query = elements.searchInput.value.trim()
-  if (query) {
-    elements.searchResultsText.textContent = `Found ${currentResults.length.toLocaleString()} devices`
-  }
-  else {
-    elements.searchResultsText.textContent = `Showing all ${deviceCount.toLocaleString()} devices`
-  }
 }
 
 // 远程数据获取
@@ -326,7 +290,6 @@ async function loadVersionInfo(): Promise<void> {
   try {
     versionInfo = useLocalData ? await loadDataFromLocal<VersionInfo>(USB_IDS_VERSION_JSON_FILE) : await loadDataFromNpm<VersionInfo>(version, USB_IDS_VERSION_JSON_FILE)
     updateVersionDisplay()
-    startCountdown()
   }
   catch (error) {
     console.warn('Failed to load version info:', error)
@@ -345,19 +308,6 @@ function updateVersionDisplay(): void {
   // 显示获取时间（转换为本地时间）
   const fetchDate = new Date(versionInfo.fetchTime)
   createTimeTooltip(elements.fetchTime, fetchDate, 'Last Updated')
-
-  // 计算下次更新时间（下一个UTC 2:30）
-  const now = new Date()
-  const nextUpdateTime = new Date(now)
-
-  // 设置为今天的UTC 2:30
-  nextUpdateTime.setUTCHours(2, 30, 0, 0)
-
-  // 如果当前时间已经过了今天的UTC 2:30，则设置为明天的UTC 2:30
-  if (now.getTime() >= nextUpdateTime.getTime()) {
-    nextUpdateTime.setUTCDate(nextUpdateTime.getUTCDate() + 1)
-  }
-  createTimeTooltip(elements.nextUpdate, nextUpdateTime, 'Next Update')
 }
 
 function createTimeTooltip(element: HTMLElement, date: Date, label: string): void {
@@ -398,81 +348,19 @@ function createTimeTooltip(element: HTMLElement, date: Date, label: string): voi
   element.appendChild(container)
 }
 
-function startCountdown(): void {
-  if (!versionInfo)
-    return
-
-  // 清除之前的倒计时，防止重复创建定时器
-  if (countdownInterval) {
-    clearInterval(countdownInterval)
-    countdownInterval = null
-  }
-
-  function updateCountdown(): void {
-    if (!versionInfo)
-      return
-
-    const now = new Date()
-    const nextUpdateTime = new Date(now)
-
-    // 设置为今天的UTC 2:30
-    nextUpdateTime.setUTCHours(2, 30, 0, 0)
-
-    // 如果当前时间已经过了今天的UTC 2:30，则设置为明天的UTC 2:30
-    if (now.getTime() >= nextUpdateTime.getTime()) {
-      nextUpdateTime.setUTCDate(nextUpdateTime.getUTCDate() + 1)
-    }
-    const timeLeft = nextUpdateTime.getTime() - now.getTime()
-
-    if (timeLeft <= 0) {
-      elements.countdown.textContent = 'Update needed'
-      elements.countdown.classList.add('urgent')
-      if (countdownInterval) {
-        clearInterval(countdownInterval)
-        countdownInterval = null
-      }
-      return
-    }
-
-    // 计算剩余时间
-    const hours = Math.floor(timeLeft / (1000 * 60 * 60))
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000)
-
-    // 格式化显示
-    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-    elements.countdown.textContent = timeString
-
-    // 如果剩余时间少于1小时，添加紧急样式
-    if (timeLeft < 60 * 60 * 1000) {
-      elements.countdown.classList.add('urgent')
-    }
-    else {
-      elements.countdown.classList.remove('urgent')
-    }
-  }
-
-  // 立即更新一次
-  updateCountdown()
-
-  // 每秒更新倒计时
-  countdownInterval = setInterval(updateCountdown, 1000)
-}
-
 // 事件处理函数
 function handleSearch(): void {
   const query = elements.searchInput.value.trim()
-  const searchType = (document.querySelector('input[name="searchType"]:checked') as HTMLInputElement)?.value as 'all' | 'vendor' | 'device' || 'all'
 
   // 显示/隐藏清除按钮
   elements.clearSearch.style.display = query ? 'block' : 'none'
 
   // 执行搜索
-  currentResults = searchUsbData({ query, searchType })
+  currentResults = searchUsbData({ query })
   currentPage = 1
 
   // 更新URL参数
-  updateUrlParams(query, searchType, currentPage)
+  updateUrlParams(query, currentPage)
 
   // 更新统计
   updateStats()
@@ -500,8 +388,7 @@ function changePage(direction: 'prev' | 'next'): void {
 
   // 更新URL参数
   const query = elements.searchInput.value.trim()
-  const searchType = (document.querySelector('input[name="searchType"]:checked') as HTMLInputElement)?.value as 'all' | 'vendor' | 'device' || 'all'
-  updateUrlParams(query, searchType, currentPage)
+  updateUrlParams(query, currentPage)
 
   // 更新页码跳转输入框
   elements.pageJumpInput.value = currentPage.toString()
@@ -521,8 +408,7 @@ function handlePageSizeChange(): void {
 
   // 更新URL参数
   const query = elements.searchInput.value.trim()
-  const searchType = (document.querySelector('input[name="searchType"]:checked') as HTMLInputElement)?.value as 'all' | 'vendor' | 'device' || 'all'
-  updateUrlParams(query, searchType, currentPage)
+  updateUrlParams(query, currentPage)
 
   // 更新页码跳转输入框
   elements.pageJumpInput.value = currentPage.toString()
@@ -539,8 +425,7 @@ function handlePageJump(): void {
 
     // 更新URL参数
     const query = elements.searchInput.value.trim()
-    const searchType = (document.querySelector('input[name="searchType"]:checked') as HTMLInputElement)?.value as 'all' | 'vendor' | 'device' || 'all'
-    updateUrlParams(query, searchType, currentPage)
+    updateUrlParams(query, currentPage)
 
     renderResults(currentResults, currentPage)
   }
@@ -560,11 +445,10 @@ async function initializeApp(): Promise<void> {
     elements = {
       searchInput: document.getElementById('searchInput') as HTMLInputElement,
       clearSearch: document.getElementById('clearSearch') as HTMLButtonElement,
-      searchTypeRadios: document.querySelectorAll('input[name="searchType"]') as NodeListOf<HTMLInputElement>,
+
       headerTotalVendors: document.getElementById('headerTotalVendors') as HTMLElement,
       headerTotalDevices: document.getElementById('headerTotalDevices') as HTMLElement,
-      searchResults: document.getElementById('searchResults') as HTMLElement,
-      searchResultsText: document.getElementById('searchResultsText') as HTMLElement,
+
       loadingState: document.getElementById('loadingState') as HTMLElement,
       emptyState: document.getElementById('emptyState') as HTMLElement,
       resultsList: document.getElementById('resultsList') as HTMLElement,
@@ -577,8 +461,6 @@ async function initializeApp(): Promise<void> {
       pageJumpBtn: document.getElementById('pageJumpBtn') as HTMLButtonElement,
       versionNumber: document.getElementById('versionNumber') as HTMLElement,
       fetchTime: document.getElementById('fetchTime') as HTMLElement,
-      nextUpdate: document.getElementById('nextUpdate') as HTMLElement,
-      countdown: document.getElementById('countdown') as HTMLElement,
     }
 
     // 异步加载USB ID's数据
@@ -596,12 +478,6 @@ async function initializeApp(): Promise<void> {
     if (urlParams.query) {
       elements.searchInput.value = urlParams.query
       elements.clearSearch.style.display = 'block'
-    }
-
-    // 设置搜索类型
-    const searchTypeRadio = document.querySelector(`input[name="searchType"][value="${urlParams.searchType}"]`) as HTMLInputElement
-    if (searchTypeRadio) {
-      searchTypeRadio.checked = true
     }
 
     // 设置当前页
@@ -622,10 +498,6 @@ async function initializeApp(): Promise<void> {
   // 绑定事件
   elements.searchInput.addEventListener('input', debouncedSearch)
   elements.clearSearch.addEventListener('click', clearSearch)
-
-  elements.searchTypeRadios.forEach((radio) => {
-    radio.addEventListener('change', handleSearch)
-  })
 
   elements.prevPage.addEventListener('click', () => changePage('prev'))
   elements.nextPage.addEventListener('click', () => changePage('next'))
@@ -653,10 +525,7 @@ async function initializeApp(): Promise<void> {
 
 // 清理函数，防止内存泄露
 function cleanup(): void {
-  if (countdownInterval) {
-    clearInterval(countdownInterval)
-    countdownInterval = null
-  }
+  // 清理函数保留用于未来扩展
 }
 
 // 启动应用
@@ -680,19 +549,5 @@ if (globalThis.window) {
   window.addEventListener('unload', cleanup)
 
   // 页面隐藏时暂停定时器，显示时恢复（优化性能）
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      // 页面隐藏时清除定时器
-      if (countdownInterval) {
-        clearInterval(countdownInterval)
-        countdownInterval = null
-      }
-    }
-    else {
-      // 页面显示时重新启动倒计时
-      if (versionInfo) {
-        startCountdown()
-      }
-    }
-  })
+  // 倒计时功能已移除
 }
