@@ -41,7 +41,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "postinstall": "pnpm run fetch-usb-ids",
-    "dev:app": "vite",
+    "dev:app": "vite --port 5173",
     "build:app": "vite build",
     "dev:lib": "tsdown --watch",
     "build:lib": "tsdown --env.NODE_ENV=production",
