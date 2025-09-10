@@ -56,9 +56,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "prepare": "simple-git-hooks",
-    "bumpp": "bumpp",
+    "tag": "bumpp",
     "lint-staged": "lint-staged",
-
     "diff-hash": "tsx scripts/diff-hash.ts"
   },
   "devDependencies": {
