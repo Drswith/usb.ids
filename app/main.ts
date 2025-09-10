@@ -19,7 +19,7 @@ if (import.meta.env?.DEV) {
 }
 
 // 全局变量
-const version = import.meta.env.VERSION || 'latest'
+const version = 'latest'
 const useLocalData = import.meta.env.BASE_URL === UI_LOCAL_BASE_URL
 
 let currentData: UsbIdsData = {}
