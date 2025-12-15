@@ -1,7 +1,7 @@
 {
   "name": "usb.ids",
   "type": "module",
-  "version": "1.0.1765672246556",
+  "version": "1.0.1765758619277",
   "packageManager": "pnpm@9.15.9",
   "description": "An automated USB ID's database project that provides a CLI tool and data files. It fetches the latest USB ID's data every 24 hours and publishes updated data files to npm.",
   "author": "Drswith",
