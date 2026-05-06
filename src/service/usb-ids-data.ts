@@ -4,18 +4,17 @@ import * as path from 'node:path'
 import { USB_IDS_FILE, USB_IDS_VERSION_JSON_FILE } from '../config'
 import { downloadFromUrls } from '../fetcher'
 import { isDatasetV2 } from '../legacy/to-v1'
-import { createVersionInfo, generateContentHash, parseUsbIdsFull, shouldUpdate } from '../parser'
+import { createVersionInfo, generateContentHash, parseUsbIdsFull } from '../parser'
 import {
   loadVersionInfo,
   saveRawUsbIdsFile,
   saveVersionInfo,
 } from '../repository/file-store'
-
-function readPackageVersion(repoRoot: string): string {
-  const p = path.join(repoRoot, 'package.json')
-  const pkg = JSON.parse(fs.readFileSync(p, 'utf8')) as { version: string }
-  return pkg.version
-}
+import {
+  getUpstreamHashFromManifest,
+  readCurrentReleaseVersion,
+  resolveUpstreamMeta,
+} from '../version-manifest'
 
 function readFallbackDataset(fallbackPath: string): { data: UsbDatasetV2 | UsbIdsData, rawText: string } {
   const rawText = fs.readFileSync(fallbackPath, 'utf8')
@@ -39,14 +38,6 @@ export async function fetchUsbIdsData(
   try {
     const existingVersion = loadVersionInfo(versionFilePath)
 
-    if (!shouldUpdate(existingVersion, forceUpdate)) {
-      const fallbackPath = path.resolve(root, fallbackFile)
-      if (fs.existsSync(fallbackPath)) {
-        const { data } = readFallbackDataset(fallbackPath)
-        return { data, source: 'fallback', versionInfo: existingVersion! }
-      }
-    }
-
     let usbIdsContent: string | null = null
 
     try {
@@ -63,7 +54,7 @@ export async function fetchUsbIdsData(
     if (usbIdsContent) {
       if (existingVersion && !forceUpdate) {
         const newHash = generateContentHash(usbIdsContent)
-        if (newHash === existingVersion.contentHash) {
+        if (newHash === getUpstreamHashFromManifest(existingVersion)) {
           const fallbackPath = path.resolve(root, fallbackFile)
           if (fs.existsSync(fallbackPath)) {
             const { data } = readFallbackDataset(fallbackPath)
@@ -92,7 +83,15 @@ export async function fetchUsbIdsData(
       }
     }
 
-    const versionInfo = createVersionInfo(data, rawContent, source, readPackageVersion(root))
+    const currentReleaseVersion = readCurrentReleaseVersion(root, existingVersion)
+    const up = resolveUpstreamMeta(rawContent, existingVersion, Boolean(usbIdsContent))
+    const versionInfo = createVersionInfo(
+      data,
+      rawContent,
+      up.version,
+      up.date,
+      currentReleaseVersion,
+    )
     await saveVersionInfo(versionInfo, versionFilePath)
 
     return { data, source, versionInfo }

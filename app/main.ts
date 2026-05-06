@@ -45,6 +45,7 @@ let elements: {
   pageJumpInput: HTMLInputElement
   pageJumpBtn: HTMLButtonElement
   versionNumber: HTMLElement
+  upstreamVersion: HTMLElement
   fetchTime: HTMLElement
 }
 
@@ -147,11 +148,13 @@ async function loadVersionInfo(): Promise<void> {
 function updateVersionDisplay(): void {
   if (!versionInfo)
     return
-  elements.versionNumber.textContent = versionInfo?.version?.startsWith('v')
-    ? versionInfo.version
-    : `v${versionInfo.version}`
+  elements.versionNumber.textContent = versionInfo?.releaseVersion?.startsWith('v')
+    ? versionInfo.releaseVersion
+    : `v${versionInfo.releaseVersion}`
 
-  const fetchDate = new Date(versionInfo.fetchTime)
+  elements.upstreamVersion.textContent = versionInfo.upstreamVersion
+
+  const fetchDate = new Date(versionInfo.buildTime)
   createTimeTooltip(elements.fetchTime, fetchDate, 'Last Updated')
 }
 
@@ -272,6 +275,7 @@ async function initializeApp(): Promise<void> {
       pageJumpInput: document.getElementById('pageJumpInput') as HTMLInputElement,
       pageJumpBtn: document.getElementById('pageJumpBtn') as HTMLButtonElement,
       versionNumber: document.getElementById('versionNumber') as HTMLElement,
+      upstreamVersion: document.getElementById('upstreamVersion') as HTMLElement,
       fetchTime: document.getElementById('fetchTime') as HTMLElement,
     }
 

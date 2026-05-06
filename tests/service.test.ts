@@ -36,7 +36,7 @@ describe('fetchUsbIdsData', () => {
       true,
     )
     expect(r.source).toBe('api')
-    expect(r.versionInfo.version.match(/^2\.\d{8}\.\d+$/)).toBeTruthy()
+    expect(r.versionInfo.releaseVersion.match(/^2\.\d{8}\.\d+$/)).toBeTruthy()
     expect(r.data).toHaveProperty('schemaVersion', 2)
 
     const verPath = path.join(root, USB_IDS_VERSION_JSON_FILE)

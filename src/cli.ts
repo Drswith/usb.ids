@@ -13,7 +13,6 @@ import { fileURLToPath } from 'node:url'
 import sirv from 'sirv'
 import { UI_LOCAL_BASE_URL, USB_IDS_JSON_FILE, USB_IDS_SOURCE, USB_IDS_VERSION_JSON_FILE } from './config'
 import { fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile } from './core'
-import { shouldUpdate } from './parser'
 import { colors, logger } from './utils'
 
 function getCliPackageRoot(): string {
@@ -40,16 +39,8 @@ async function updateUsbIdsData(forceUpdate = false): Promise<void> {
     const root = process.cwd()
     const fallbackFile = USB_IDS_JSON_FILE
     const jsonFile = path.join(root, USB_IDS_JSON_FILE)
-    const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE)
 
     logger.start('Starting USB ID\'s data update...')
-
-    // 检查是否需要更新
-    const currentVersionInfo = loadVersionInfo(versionFile)
-    if (!forceUpdate && !shouldUpdate(currentVersionInfo, forceUpdate)) {
-      logger.info('Data is already up to date, no update needed')
-      return
-    }
 
     // 获取USB设备数据
     logger.info('Fetching USB ID\'s data...')
@@ -69,8 +60,9 @@ async function updateUsbIdsData(forceUpdate = false): Promise<void> {
     logger.info(`Data source: ${source === 'api' ? 'Remote API' : 'Local fallback file'}`)
     logger.info(`Vendor count: ${versionInfo.vendorCount}`)
     logger.info(`Device count: ${versionInfo.deviceCount}`)
-    logger.info(`Version: ${versionInfo.version}`)
-    logger.info(`Update time: ${versionInfo.fetchTimeFormatted}`)
+    logger.info(`Release: ${versionInfo.releaseVersion}`)
+    logger.info(`Upstream database: ${versionInfo.upstreamVersion}`)
+    logger.info(`Build time: ${versionInfo.buildTimeFormatted}`)
   }
   catch (error) {
     logger.error(`Update failed: ${(error as Error).message}`)
@@ -98,12 +90,12 @@ function showVersionInfo(): void {
     }
 
     logger.info('Current version information:')
-    console.log(`  Version: ${versionInfo.version}`)
-    console.log(`  Data source: ${versionInfo.source === 'api' ? 'Remote API' : 'Local fallback file'}`)
+    console.log(`  Release: ${versionInfo.releaseVersion}`)
+    console.log(`  Upstream database: ${versionInfo.upstreamVersion}`)
     console.log(`  Vendor count: ${versionInfo.vendorCount}`)
     console.log(`  Device count: ${versionInfo.deviceCount}`)
-    console.log(`  Update time: ${versionInfo.fetchTimeFormatted}`)
-    console.log(`  Content hash: ${versionInfo.contentHash}`)
+    console.log(`  Build time: ${versionInfo.buildTimeFormatted}`)
+    console.log(`  Upstream hash: ${versionInfo.upstreamHash}`)
   }
   catch (error) {
     logger.error(`Failed to get version information: ${(error as Error).message}`)
@@ -119,24 +111,16 @@ function checkUpdate(): void {
     const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE)
 
     const versionInfo = loadVersionInfo(versionFile)
-    const needsUpdate = shouldUpdate(versionInfo)
 
-    if (needsUpdate) {
-      logger.warn('Data needs to be updated')
-      if (versionInfo) {
-        const hoursSinceUpdate = (Date.now() - versionInfo.fetchTime) / (1000 * 60 * 60)
-        logger.info(`${hoursSinceUpdate.toFixed(1)} hours have passed since last update`)
-      }
-      else {
-        logger.info('Version information not found, recommend performing initial update')
-      }
+    if (!versionInfo) {
+      logger.warn('Version manifest missing — run usb-ids fetch first')
+      return
     }
-    else {
-      logger.success('Data is up to date, no update needed')
-      if (versionInfo) {
-        logger.info(`Last update time: ${versionInfo.fetchTimeFormatted}`)
-      }
-    }
+
+    logger.info('Local manifest (run fetch to refresh from network)')
+    logger.info(`Upstream database: ${versionInfo.upstreamVersion}`)
+    logger.info(`Release: ${versionInfo.releaseVersion}`)
+    logger.info(`Build time: ${versionInfo.buildTimeFormatted}`)
   }
   catch (error) {
     logger.error(`Check update failed: ${(error as Error).message}`)

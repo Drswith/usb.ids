@@ -4,7 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/usb.ids)](https://www.npmjs.com/package/usb.ids) [![npm downloads](https://img.shields.io/npm/dm/usb.ids)](https://www.npmjs.com/package/usb.ids)
 
-[![Last Updated](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Funpkg.com%2Fusb.ids%2Fusb.ids.version.json&query=%24.fetchTimeFormatted&label=latest%20release&color=blue)](https://www.npmjs.com/package/usb.ids) [![Auto Update](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/auto-update.yml?label=auto%20update)](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml) [![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/github-pages.yml?label=github%20pages)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
+[![Upstream version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Funpkg.com%2Fusb.ids%2Fusb.ids.version.json&query=%24.upstreamVersion&label=upstream%20version&color=blue)](https://www.npmjs.com/package/usb.ids) [![Auto Update](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/auto-update.yml?label=auto%20update)](https://github.com/Drswith/usb.ids/actions/workflows/auto-update.yml) [![GitHub Pages](https://img.shields.io/github/actions/workflow/status/Drswith/usb.ids/github-pages.yml?label=github%20pages)](https://github.com/Drswith/usb.ids/actions/workflows/github-pages.yml)
 
 </div>
 
@@ -104,7 +104,7 @@ Top-level fields include `schemaVersion: 2`, `vendors`, `classes`, `audioTermina
 
 ## Data workflow (repository)
 
-**Strategy A (this repo):** The auto-update workflow commits `usb.ids`, `usb.ids.json`, `usb.ids.version.json`, and bumps `package.json` **CalVer** `2.YYYYMMDD.N` when upstream content hash changes.
+**Strategy A (this repo):** The auto-update workflow commits `usb.ids`, `usb.ids.json`, `usb.ids.version.json`, and bumps `package.json` **CalVer** `2.YYYYMMDD.N` when upstream `usb.ids` content changes. The `YYYYMMDD` segment is derived from the upstream file header `# Version: YYYY.MM.DD` (not the CI clock). The `N` suffix increments when multiple npm releases share that upstream date.
 
 **Strategy B:** Keep large JSON out of git and run `pnpm run fetch-usb-ids` in CI before site build (see Pages workflow). Pick one policy per fork; this upstream uses A.
 

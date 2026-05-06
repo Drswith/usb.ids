@@ -73,22 +73,22 @@ export interface UsbDatasetV2 {
   hcts: Record<string, string>
 }
 
-/** 版本信息接口 */
+/** Published manifest for USB.ID — aligns with `package.json` version (CalVer). */
 export interface VersionInfo {
-  /** 获取时间戳 */
-  fetchTime: number
-  /** 获取时间的可读格式 */
-  fetchTimeFormatted: string
-  /** 文件内容的SHA256哈希值 */
-  contentHash: string
-  /** 数据源 */
-  source: 'api' | 'fallback'
-  /** 供应商数量 */
+  /** CalVer release, same as npm `version` (`schemaMajor.YYYYMMDD.N`) */
+  releaseVersion: string
+  /** Upstream `usb.ids` `# Version: YYYY.MM.DD` */
+  upstreamVersion: string
+  /** Optional raw `# Date: …` line from upstream */
+  upstreamDate: string | null
+  /** SHA-256 of raw `usb.ids` bytes (or JSON fallback bytes when rebuild manifest from JSON-only) */
+  upstreamHash: string
+  /** Matches first segment of `releaseVersion` and dataset schema generation */
+  schemaVersion: 2
+  /** UTC ms when this manifest was written */
+  buildTime: number
+  /** `buildTime` as formatted UTC string */
+  buildTimeFormatted: string
   vendorCount: number
-  /** 设备数量 */
   deviceCount: number
-  /** 版本号（时间戳后缀） */
-  version: string
-  /** 数据 schema（可选，2 表示完整 usb.ids 解析） */
-  schemaVersion?: 2
 }

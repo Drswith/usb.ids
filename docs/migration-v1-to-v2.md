@@ -29,3 +29,19 @@ function normalize(raw: unknown): UsbIdsData {
 ## Fields only in v2
 
 USB class hierarchy, HID usage pages, languages, video terminals, etc., are **dropped** by `toV1()`. If you need them, keep the full `UsbDatasetV2` object and do not flatten to v1.
+
+## `usb.ids.version.json` manifest field renames
+
+If you consume the published manifest next to `usb.ids.json`, note these renames (loaders may still accept the old keys):
+
+| Previous | Current |
+|----------|---------|
+| `version` | `releaseVersion` (npm package version / CalVer) |
+| `contentHash` | `upstreamHash` |
+| `fetchTime` | `buildTime` |
+| `fetchTimeFormatted` | `buildTimeFormatted` |
+| `source` | *(removed; not a publish-time concern)* |
+
+Added: `upstreamVersion` (`YYYY.MM.DD` from upstream `# Version`), optional `upstreamDate` (raw `# Date:` line). The CalVer middle segment `YYYYMMDD` matches `upstreamVersion` with dots removed.
+
+Older releases used the **fetch** UTC date for that segment; newer releases use the **upstream** date from `usb.ids`.

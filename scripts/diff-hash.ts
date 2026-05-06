@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 
 /**
- * USB.IDS数据哈希差异检查脚本
- * 该脚本用于GitHub Actions工作流中，通过比较远程数据与npm包中的contentHash来判断是否需要更新
+ * USB.IDS data hash diff for CI: compare remote `usb.ids` SHA-256 with the latest published
+ * `usb.ids.version.json` on the npm CDN (`upstreamHash`, legacy `contentHash`).
  */
 
 import * as process from 'node:process'
@@ -12,9 +12,19 @@ import { generateContentHash } from '../src/parser'
 import { logger } from '../src/utils'
 
 interface NpmVersionInfo {
-  contentHash: string
-  version: string
-  fetchTime: number
+  upstreamHash?: string
+  contentHash?: string
+  releaseVersion?: string
+  version?: string
+  fetchTime?: number
+}
+
+function publishedHash(info: NpmVersionInfo): string | undefined {
+  return info.upstreamHash ?? info.contentHash
+}
+
+function publishedRelease(info: NpmVersionInfo): string | undefined {
+  return info.releaseVersion ?? info.version
 }
 
 /**
@@ -22,7 +32,6 @@ interface NpmVersionInfo {
  */
 async function getNpmVersionInfo(): Promise<NpmVersionInfo | null> {
   try {
-    // 尝试直接从unpkg CDN获取版本信息文件
     const versionUrl = 'https://unpkg.com/usb.ids@latest/usb.ids.version.json'
     const response = await fetch(versionUrl)
 
@@ -32,7 +41,7 @@ async function getNpmVersionInfo(): Promise<NpmVersionInfo | null> {
     }
 
     const versionInfo = await response.json() as NpmVersionInfo
-    logger.info(`NPM package version: ${versionInfo.version}`)
+    logger.info(`NPM package release: ${publishedRelease(versionInfo) ?? 'unknown'}`)
     return versionInfo
   }
   catch (error) {
@@ -42,7 +51,7 @@ async function getNpmVersionInfo(): Promise<NpmVersionInfo | null> {
 }
 
 /**
- * 获取远程数据的contentHash
+ * 获取远程数据的 SHA-256
  */
 async function getRemoteContentHash(): Promise<string | null> {
   try {
@@ -71,41 +80,43 @@ async function diffHash(): Promise<void> {
   try {
     logger.start('Comparing content hashes...')
 
-    // 获取npm包版本信息
     const npmInfo = await getNpmVersionInfo()
     if (!npmInfo) {
       logger.info('No npm version info available, forcing update')
-      process.exit(1) // 退出码1表示需要更新
+      process.exit(1)
     }
 
-    logger.info(`NPM package hash: ${npmInfo.contentHash}`)
+    const npmHash = publishedHash(npmInfo)
+    if (!npmHash) {
+      logger.info('No upstreamHash/contentHash in npm manifest, forcing update')
+      process.exit(1)
+    }
 
-    // 获取远程数据hash
+    logger.info(`NPM package hash: ${npmHash}`)
+
     const remoteHash = await getRemoteContentHash()
     if (!remoteHash) {
       logger.info('Failed to get remote hash, forcing update')
-      process.exit(1) // 退出码1表示需要更新
+      process.exit(1)
     }
 
-    // 比较hash值
-    if (remoteHash === npmInfo.contentHash) {
+    if (remoteHash === npmHash) {
       logger.success('No difference found, content hash is the same')
-      process.exit(0) // 退出码0表示不需要更新
+      process.exit(0)
     }
     else {
       logger.info('Hash difference detected')
       logger.info(`Remote: ${remoteHash}`)
-      logger.info(`NPM:    ${npmInfo.contentHash}`)
-      process.exit(1) // 退出码1表示需要更新
+      logger.info(`NPM:    ${npmHash}`)
+      process.exit(1)
     }
   }
   catch (error) {
     logger.error(`Hash comparison failed: ${(error as Error).message}`)
-    process.exit(1) // 出错时也强制更新
+    process.exit(1)
   }
 }
 
-// 当直接运行此脚本时执行检查
 if (import.meta.url === `file://${process.argv[1]}`) {
   diffHash()
 }

@@ -1,5 +1,8 @@
 /** Minimal usb.ids-shaped text exercising vendor/class/HID/language/video sections (+ CRLF). */
 export const MINI_USB_IDS = [
+  '# Version: 2026.05.06\r',
+  '# Date: 2026-05-06\r',
+  '#\r',
   'aaaa  Fixture Vendor\r',
   '\t1111  Fixture Device\r',
   '\t\t2222 3333  Subsystem Name\r',

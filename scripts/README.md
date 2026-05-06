@@ -4,7 +4,7 @@ Utility scripts for automation and local maintenance.
 
 ## `diff-hash.ts`
 
-Compares the SHA-256 content hash of remote `usb.ids` with the latest published package’s `usb.ids.version.json` on the npm CDN. Used by GitHub Actions to skip no-op runs.
+Compares the SHA-256 of remote `usb.ids` with the latest published package’s `usb.ids.version.json` on the npm CDN (`upstreamHash`, or legacy `contentHash`). Used by GitHub Actions to skip no-op runs.
 
 ```bash
 pnpm run diff-hash

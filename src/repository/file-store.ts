@@ -1,5 +1,6 @@
 import type { UsbDatasetV2, UsbIdsData, VersionInfo } from '../types'
 import * as fs from 'node:fs'
+import { normalizeVersionInfo } from '../version-manifest'
 
 export async function saveRawUsbIdsFile(
   content: string,
@@ -53,5 +54,6 @@ export function loadJsonFile<T>(filePath: string): T | null {
 }
 
 export function loadVersionInfo(filePath: string): VersionInfo | null {
-  return loadJsonFile<VersionInfo>(filePath)
+  const raw = loadJsonFile<unknown>(filePath)
+  return normalizeVersionInfo(raw)
 }

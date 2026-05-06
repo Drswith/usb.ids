@@ -49,5 +49,5 @@ flowchart TB
 
 ## Versioning
 
-- **npm / `usb.ids.version.json`:** CalVer `2.YYYYMMDD.N` after the 2.x cut, aligned with automated releases.
-- **Content:** `contentHash` (SHA-256 of raw `usb.ids` text) drives “needs update” in CI vs published npm payload.
+- **npm / `usb.ids.version.json`:** CalVer `M.YYYYMMDD.N` where `M` matches dataset `schemaVersion` (currently `2`). The `YYYYMMDD` segment mirrors upstream `# Version: YYYY.MM.DD` in raw `usb.ids`.
+- **Content:** `upstreamHash` (SHA-256 of raw `usb.ids` bytes) drives “needs update” in CI vs the published npm manifest (legacy field `contentHash` is still read when comparing to older publishes).

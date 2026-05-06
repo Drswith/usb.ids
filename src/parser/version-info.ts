@@ -19,45 +19,33 @@ function countVendorsAndDevices(data: UsbIdsData | UsbDatasetV2): { vendorCount:
   return { vendorCount: Object.keys(legacy).length, deviceCount }
 }
 
+const SCHEMA_MAJOR = 2
+
 export function createVersionInfo(
   data: UsbIdsData | UsbDatasetV2,
   rawContent: string,
-  source: 'api' | 'fallback',
-  /** Current npm/package.json version for CalVer bump */
-  currentPackageVersion: string,
+  upstreamVersion: string,
+  upstreamDate: string | null,
+  currentReleaseVersion: string,
 ): VersionInfo {
-  const fetchTime = Date.now()
-  const contentHash = generateContentHash(rawContent)
+  const buildTime = Date.now()
+  const upstreamHash = generateContentHash(rawContent)
 
   const { vendorCount, deviceCount } = countVendorsAndDevices(data)
 
   return {
-    fetchTime,
-    fetchTimeFormatted: formatDateTime(fetchTime),
-    contentHash,
-    source,
+    releaseVersion: nextCalVer({
+      upstreamVersion,
+      currentReleaseVersion,
+      schemaMajor: SCHEMA_MAJOR,
+    }),
+    upstreamVersion,
+    upstreamDate,
+    upstreamHash,
+    schemaVersion: 2,
+    buildTime,
+    buildTimeFormatted: formatDateTime(buildTime),
     vendorCount,
     deviceCount,
-    version: nextCalVer(fetchTime, currentPackageVersion),
-    schemaVersion: 'schemaVersion' in data && data.schemaVersion === 2 ? 2 : undefined,
   }
-}
-
-export function shouldUpdate(
-  versionInfo: VersionInfo | null,
-  forceUpdate = false,
-): boolean {
-  if (forceUpdate) {
-    return true
-  }
-
-  if (!versionInfo) {
-    return true
-  }
-
-  const now = Date.now()
-  const timeDiff = now - versionInfo.fetchTime
-  const hoursDiff = timeDiff / (1000 * 60 * 60)
-
-  return hoursDiff >= 24
 }

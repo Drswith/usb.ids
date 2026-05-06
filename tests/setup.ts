@@ -45,13 +45,15 @@ const hoisted = vi.hoisted(() => {
   }
 
   const mockVersionInfo: VersionInfo = {
-    fetchTime: Date.now(),
-    fetchTimeFormatted: new Date().toISOString(),
-    contentHash: 'mock-hash-12345',
-    source: 'api' as const,
+    releaseVersion: '2.20260101.0',
+    upstreamVersion: '2026.01.01',
+    upstreamDate: null,
+    upstreamHash: 'mock-hash-12345',
+    schemaVersion: 2,
+    buildTime: Date.now(),
+    buildTimeFormatted: new Date().toISOString(),
     vendorCount: 3,
     deviceCount: 5,
-    version: '1.0.0-test',
   }
 
   return { mockUsbData, mockVersionInfo }
