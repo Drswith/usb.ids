@@ -59,6 +59,17 @@ describe('resolveUpstreamMeta', () => {
       date: null,
     })
   })
+
+  it('derives upstream from legacy v1.0.<ms> on existing when JSON', () => {
+    const legacyOnly = {
+      version: 'v1.0.1766044470065',
+      contentHash: 'ab',
+    } as unknown as VersionInfo
+    expect(resolveUpstreamMeta('{}', legacyOnly, false)).toEqual({
+      version: '2025.12.18',
+      date: null,
+    })
+  })
 })
 
 describe('legacyReleaseToUpstream', () => {
@@ -153,6 +164,22 @@ describe('normalizeVersionInfo', () => {
         upstreamHash: 'x',
       }),
     ).toBeNull()
+  })
+
+  it('derives upstream from legacy v1.0.<fetchTimeMs> + contentHash', () => {
+    expect(
+      normalizeVersionInfo({
+        version: 'v1.0.1766044470065',
+        contentHash: 'dead',
+        fetchTime: 1766044470065,
+        vendorCount: 1,
+        deviceCount: 2,
+      }),
+    ).toMatchObject({
+      releaseVersion: 'v1.0.1766044470065',
+      upstreamVersion: '2025.12.18',
+      upstreamHash: 'dead',
+    })
   })
 
   it('sets upstreamDate when present', () => {

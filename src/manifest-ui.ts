@@ -27,6 +27,27 @@ export function legacyReleaseToUpstream(calVer: string): string | null {
 }
 
 /**
+ * Old npm manifests used `v1.0.<fetchTimeMs>` — not CalVer. Derive a display `YYYY.MM.DD`
+ * from that UTC timestamp (fetch time, not linux-usb `# Version:`).
+ */
+export function legacyV10FetchTimestampToUpstream(calVer: string): string | null {
+  const trimmed = calVer.replace(/^v/i, '')
+  const m = trimmed.match(/^\d+\.\d+\.(\d{10,})$/)
+  if (!m)
+    return null
+  const ms = Number(m[1])
+  if (!Number.isFinite(ms))
+    return null
+  const d = new Date(ms)
+  if (Number.isNaN(d.getTime()))
+    return null
+  const y = d.getUTCFullYear()
+  const mo = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const da = String(d.getUTCDate()).padStart(2, '0')
+  return `${y}.${mo}.${da}`
+}
+
+/**
  * Lenient manifest parse for browser UI: accepts legacy `version` / `fetchTime` / `contentHash`
  * and never returns null solely because upstream cannot be derived from CalVer.
  */
@@ -51,8 +72,9 @@ export function normalizeVersionInfoForUi(raw: unknown): VersionInfo | null {
 
   let upstreamVersion = typeof r.upstreamVersion === 'string' ? r.upstreamVersion : ''
   if (!upstreamVersion) {
-    const fromCal = legacyReleaseToUpstream(releaseVersion)
-    upstreamVersion = fromCal ?? ''
+    upstreamVersion = legacyReleaseToUpstream(releaseVersion)
+      ?? legacyV10FetchTimestampToUpstream(releaseVersion)
+      ?? ''
   }
 
   const buildTime = typeof r.buildTime === 'number'

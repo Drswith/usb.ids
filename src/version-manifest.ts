@@ -1,11 +1,17 @@
 import type { VersionInfo } from './types'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { legacyReleaseToUpstream } from './manifest-ui'
+import {
+  legacyReleaseToUpstream,
+  legacyV10FetchTimestampToUpstream,
+} from './manifest-ui'
 import { formatDateTime } from './parser/datetime'
 import { parseUsbIdsHeader } from './parser/upstream-header'
 
-export { legacyReleaseToUpstream } from './manifest-ui'
+export {
+  legacyReleaseToUpstream,
+  legacyV10FetchTimestampToUpstream,
+} from './manifest-ui'
 
 type LegacyManifest = Partial<VersionInfo> & {
   version?: string
@@ -38,8 +44,10 @@ export function normalizeVersionInfo(raw: unknown): VersionInfo | null {
   let upstreamVersion: string | null = typeof r.upstreamVersion === 'string'
     ? r.upstreamVersion
     : null
-  if (!upstreamVersion)
+  if (!upstreamVersion) {
     upstreamVersion = legacyReleaseToUpstream(releaseVersion)
+      ?? legacyV10FetchTimestampToUpstream(releaseVersion)
+  }
   if (!upstreamVersion)
     return null
 
@@ -115,7 +123,10 @@ export function resolveUpstreamMeta(
   }
 
   const ex = existing
-  const fromExisting = ex?.upstreamVersion ?? legacyReleaseToUpstream(ex?.releaseVersion ?? (ex as LegacyManifest | null)?.version ?? '')
+  const releaseStr = ex?.releaseVersion ?? (ex as LegacyManifest | null)?.version ?? ''
+  const fromExisting = ex?.upstreamVersion
+    ?? legacyReleaseToUpstream(releaseStr)
+    ?? legacyV10FetchTimestampToUpstream(releaseStr)
 
   if (fromExisting) {
     return {
