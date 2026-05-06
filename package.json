@@ -18,9 +18,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "browser": "./dist/browser.js",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./browser": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/browser.js"
+    },
+    "./data/min": "./dist/data/usb.ids.min.json",
+    "./data/compact": "./dist/data/usb.ids.compact.json",
+    "./data/vendors-index": "./dist/data/vendors.index.json",
+    "./data/version": "./dist/data/usb.ids.version.json",
     "./package.json": "./package.json"
   },
   "main": "./dist/index.cjs",
@@ -39,20 +48,22 @@
     "node": ">=18"
   },
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
-    "postinstall": "pnpm run fetch-usb-ids",
     "dev:app": "vite --port 5173",
     "build:app": "vite build",
     "dev:lib": "tsdown --watch",
     "build:lib": "tsdown --env.NODE_ENV=production",
-    "build": "run-s \"build:lib --outDir dist\" \"build:app --outDir dist/ui\"",
+    "build:artifacts": "tsx scripts/build-artifacts.ts",
+    "build": "run-s \"build:lib --outDir dist\" build:artifacts \"build:app --outDir dist/ui\"",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "fetch-usb-ids": "tsx src/cli.ts fetch",
     "dev:ui": "tsx src/cli.ts ui",
-    "release": "bumpp && pnpm publish",
+    "release": "echo \"Publishing: use GitHub Action 'Auto Update USB.IDS' only.\" && exit 1",
+    "release:dry": "bumpp --no-commit --no-tag --no-push",
     "start": "tsx src/index.ts",
     "test": "vitest run",
+    "test:bench": "vitest bench --run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "prepare": "simple-git-hooks",
@@ -60,18 +71,25 @@
     "lint-staged": "lint-staged",
     "diff-hash": "tsx scripts/diff-hash.ts"
   },
+  "dependencies": {
+    "sirv": "^3.0.2"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "^4.2.1",
     "@antfu/ni": "^24.1.0",
     "@antfu/utils": "^9.1.0",
     "@types/node": "^22.13.10",
+    "@types/supertest": "^7.2.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "bumpp": "^10.1.0",
     "eslint": "9.23.0",
     "eslint-plugin-format": "1.0.1",
+    "execa": "^9.6.1",
     "happy-dom": "^18.0.1",
     "lint-staged": "^15.5.0",
     "npm-run-all2": "^8.0.4",
     "simple-git-hooks": "^2.11.1",
+    "supertest": "^7.2.2",
     "tsdown": "^0.14.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",

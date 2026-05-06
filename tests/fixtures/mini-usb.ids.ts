@@ -1,0 +1,21 @@
+/** Minimal usb.ids-shaped text exercising vendor/class/HID/language/video sections (+ CRLF). */
+export const MINI_USB_IDS = [
+  'aaaa  Fixture Vendor\r',
+  '\t1111  Fixture Device\r',
+  '\t\t2222 3333  Subsystem Name\r',
+  'C 03  Wireless Controller\r',
+  '\t01  RF Controller\r',
+  '\t\t01  Bluetooth\r',
+  'AT 0001  Audio Terminal\r',
+  'HID 01  HID Descriptor Type\r',
+  'R 02  HID Item\r',
+  'BIAS 01  Bias\r',
+  'PHY 02  PHY\r',
+  'HUT 01  Usage Page Name\r',
+  '\t0001  Usage One\r',
+  'L 0409  English\r',
+  '\t01  US\r',
+  'HCC 01  Country Code\r',
+  'VT 0001  Video Terminal\r',
+  'HCT 02  HCT Entry\r',
+].join('\n')

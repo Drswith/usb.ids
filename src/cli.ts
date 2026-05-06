@@ -9,10 +9,28 @@ import * as fs from 'node:fs'
 import { createServer } from 'node:http'
 import * as path from 'node:path'
 import * as process from 'node:process'
+import { fileURLToPath } from 'node:url'
+import sirv from 'sirv'
 import { UI_LOCAL_BASE_URL, USB_IDS_JSON_FILE, USB_IDS_SOURCE, USB_IDS_VERSION_JSON_FILE } from './config'
-import { fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile, saveVersionInfo } from './core'
+import { fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile } from './core'
 import { shouldUpdate } from './parser'
 import { colors, logger } from './utils'
+
+function getCliPackageRoot(): string {
+  const cliDir = path.dirname(fileURLToPath(import.meta.url))
+  return path.dirname(cliDir)
+}
+
+function resolveUiDistDir(): string {
+  const cliDir = path.dirname(fileURLToPath(import.meta.url))
+  const fromDistSibling = path.join(cliDir, 'ui')
+  if (fs.existsSync(fromDistSibling))
+    return path.resolve(fromDistSibling)
+  const fromRepo = path.join(path.dirname(cliDir), 'dist', 'ui')
+  if (fs.existsSync(fromRepo))
+    return path.resolve(fromRepo)
+  return path.resolve(fromDistSibling)
+}
 
 /**
  * 主要的数据更新函数
@@ -20,7 +38,7 @@ import { colors, logger } from './utils'
 async function updateUsbIdsData(forceUpdate = false): Promise<void> {
   try {
     const root = process.cwd()
-    const fallbackFile = path.join(root, USB_IDS_JSON_FILE)
+    const fallbackFile = USB_IDS_JSON_FILE
     const jsonFile = path.join(root, USB_IDS_JSON_FILE)
     const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE)
 
@@ -45,17 +63,6 @@ async function updateUsbIdsData(forceUpdate = false): Promise<void> {
     // 保存JSON格式数据
     logger.info('Saving JSON format data...')
     await saveUsbIdsToFile(data, jsonFile)
-
-    // 如果是从API获取的数据，保存原始文件
-    if (source === 'api') {
-      logger.info('Saving original usb.ids file...')
-      // 这里需要重新获取原始内容来保存
-      // 由于fetchUsbIdsData已经处理了数据获取，我们需要从versionInfo中获取信息
-    }
-
-    // 保存版本信息
-    logger.info('Saving version information...')
-    await saveVersionInfo(versionInfo, versionFile)
 
     // 输出统计信息
     logger.success(`Data update completed!`)
@@ -141,110 +148,133 @@ function checkUpdate(): void {
  */
 async function startWebServer(port = 3000): Promise<void> {
   try {
-    const root = process.cwd()
-    let distDir = path.join(root, 'node_modules', 'usb.ids', 'dist', 'ui')
-    let isProd = import.meta.env?.NODE_ENV === 'production'
-    if (!fs.existsSync(distDir)) {
-      logger.warn('node_modules/usb-ids/dist/ui directory does not exist, trying to use dist/ui instead')
-      distDir = path.join(root, 'dist', 'ui')
-      isProd = false
-    }
+    const distDir = resolveUiDistDir()
+    const pkgRoot = path.resolve(getCliPackageRoot())
+    const distDirResolved = path.resolve(distDir)
 
-    // 检查dist/ui目录是否存在
-    if (!fs.existsSync(distDir)) {
+    if (!fs.existsSync(distDirResolved)) {
       logger.error('dist/ui directory does not exist, please run build command first: pnpm run build:app')
       process.exit(1)
+    }
+
+    function isPathInsideDir(file: string, dir: string): boolean {
+      const rel = path.relative(dir, file)
+      return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel))
     }
 
     function logResp(statusCode: number, start: number, success = true): void {
       logger.info(`${colors.yellow}HTTP${colors.reset} ${success ? colors.green : colors.red}Returned ${statusCode} in ${Date.now() - start} ms${colors.reset}`)
     }
 
-    // 创建HTTP服务器
+    const prod = process.env.NODE_ENV === 'production'
+    const serveStatic = sirv(distDirResolved, {
+      etag: true,
+      single: true,
+      dev: !prod,
+      maxAge: prod ? 86_400_000 : 0,
+      immutable: prod,
+    })
+
     const server = createServer((req, res) => {
       const startTime = Date.now()
-      logger.info(`${colors.yellow}HTTP${colors.reset} ${colors.cyan}${req.method} ${req.url}${colors.reset}`)
-      // 重定向根路径到UI_LOCAL_BASE_URL
-      if (req.url === '/') {
-        res.writeHead(302, {
-          Location: UI_LOCAL_BASE_URL,
-        })
+      const rawUrl = req.url ?? '/'
+      logger.info(`${colors.yellow}HTTP${colors.reset} ${colors.cyan}${req.method} ${rawUrl}${colors.reset}`)
+
+      let urlPath: string
+      try {
+        urlPath = decodeURIComponent(rawUrl.split('?')[0] || '/')
+      }
+      catch {
+        res.writeHead(400)
+        res.end('Bad Request')
+        logResp(400, startTime, false)
+        return
+      }
+
+      if (req.method !== 'GET' && req.method !== 'HEAD') {
+        res.writeHead(405)
+        res.end('Method Not Allowed')
+        logResp(405, startTime, false)
+        return
+      }
+
+      if (urlPath === '/' || urlPath === '') {
+        res.writeHead(302, { Location: UI_LOCAL_BASE_URL })
         res.end()
         logResp(302, startTime)
         return
       }
 
-      let filePath = path.join(distDir, req.url === UI_LOCAL_BASE_URL
+      const rel = urlPath === UI_LOCAL_BASE_URL
         ? 'index.html'
-        : req.url?.replace(UI_LOCAL_BASE_URL, '') || '')
+        : urlPath.startsWith(UI_LOCAL_BASE_URL)
+          ? (urlPath.slice(UI_LOCAL_BASE_URL.length) || 'index.html')
+          : urlPath.replace(/^\//, '')
 
-      // 安全检查，防止路径遍历攻击
-      if (!filePath.startsWith(distDir)) {
-        res.writeHead(403)
-        res.end('Forbidden')
-        logResp(403, startTime, false)
+      const base = path.basename(rel.split('?')[0] ?? rel)
+      if (base === USB_IDS_JSON_FILE || base === USB_IDS_VERSION_JSON_FILE) {
+        const dataPath = path.resolve(pkgRoot, base)
+        if (!isPathInsideDir(dataPath, pkgRoot)) {
+          res.writeHead(403)
+          res.end('Forbidden')
+          logResp(403, startTime, false)
+          return
+        }
+        fs.readFile(dataPath, (err, data) => {
+          if (err) {
+            res.writeHead(404)
+            res.end('Not Found')
+            logResp(404, startTime, false)
+            return
+          }
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          if (req.method === 'HEAD') {
+            res.end()
+          }
+          else {
+            res.end(data)
+          }
+          logResp(200, startTime)
+        })
         return
       }
 
-      // 处理 USB 数据文件
-      if (filePath.includes(USB_IDS_JSON_FILE) || filePath.includes(USB_IDS_VERSION_JSON_FILE)) {
-        // USB 数据文件与 dist 同级目录
-        filePath
-        = isProd
-            ? path.join(root, 'node_modules', 'usb.ids', req.url!.replace(UI_LOCAL_BASE_URL, ''))
-            : path.join(root, req.url!.replace(UI_LOCAL_BASE_URL, ''))
+      if (!urlPath.startsWith(UI_LOCAL_BASE_URL)) {
+        res.writeHead(404)
+        res.end('Not Found')
+        logResp(404, startTime, false)
+        return
       }
 
-      // 如果文件不存在，返回index.html（用于SPA路由）
-      if (!fs.existsSync(filePath)) {
-        filePath = path.join(distDir, 'index.html')
-      }
+      let inner = urlPath.slice(UI_LOCAL_BASE_URL.length)
+      if (!inner || inner === '/')
+        inner = '/'
+      else if (!inner.startsWith('/'))
+        inner = `/${inner}`
 
-      // 读取文件
-      fs.readFile(filePath, (err, data) => {
-        if (err) {
-          res.writeHead(404)
-          res.end('Not Found')
-          logResp(404, startTime, false)
-          return
-        }
+      const qs = rawUrl.includes('?') ? `?${rawUrl.split('?').slice(1).join('?')}` : ''
+      const prevUrl = req.url
+      ;(req as { url?: string }).url = `${inner}${qs}`
 
-        // 设置Content-Type
-        const ext = path.extname(filePath)
-        const contentType = {
-          '.html': 'text/html',
-          '.js': 'application/javascript',
-          '.css': 'text/css',
-          '.json': 'application/json',
-          '.png': 'image/png',
-          '.jpg': 'image/jpeg',
-          '.gif': 'image/gif',
-          '.svg': 'image/svg+xml',
-          '.ico': 'image/x-icon',
-        }[ext] || 'text/plain'
-
-        res.writeHead(200, { 'Content-Type': contentType })
-        res.end(data)
-        logResp(200, startTime)
+      serveStatic(req, res, () => {
+        ;(req as { url?: string }).url = prevUrl
+        res.statusCode = 404
+        res.end('Not Found')
+        logResp(404, startTime, false)
       })
     })
 
-    // 启动服务器
     server.listen(port, () => {
       logger.success(`usb.ids Web UI ${colors.green}server started!${colors.reset}`)
       logger.info(`Access URL: ${colors.cyan}http://localhost:${port}${UI_LOCAL_BASE_URL}${colors.reset}`)
       logger.info(`Press ${colors.yellow}Control+C${colors.reset} to ${colors.yellow}stop${colors.reset} the server`)
     })
 
-    // 保持服务器运行，直到手动停止
     return new Promise<void>((resolve, reject) => {
-      // 监听服务器错误
       server.on('error', (error) => {
         logger.error(`Server error: ${error.message}`)
         reject(error)
       })
-
-      // 服务器关闭时resolve Promise
       server.on('close', () => {
         logger.success('Server stopped')
         resolve()

@@ -4,33 +4,32 @@ permissions:
   id-token: write
   contents: write
   pull-requests: write
+  issues: write
+
+concurrency:
+  group: auto-update
+  cancel-in-progress: false
 
 on:
   schedule:
-    # 每天UTC 0:00执行
     - cron: '0 0 * * *'
-  workflow_dispatch: # 允许手动触发
+  workflow_dispatch:
     inputs:
       update_mode:
-        description: 'Update mode: auto (check hash), force (skip hash check), skip (no update)'
+        description: 'auto (hash vs npm), force (always), dry-run (fetch+build only, no publish)'
         required: false
         default: auto
         type: choice
         options:
           - auto
           - force
-          - skip
+          - dry-run
 
 jobs:
   auto-update:
     runs-on: ubuntu-latest
-    timeout-minutes: 30 # 设置超时时间为30分钟
+    timeout-minutes: 30
     steps:
-      - name: Record execution time
-        run: |
-          echo "Workflow started at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          echo "Scheduled time was: $(date -u -d 'today 02:30' '+%Y-%m-%d %H:%M:%S UTC')"
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -52,78 +51,75 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Check if update is needed
-        id: check-update
+      - name: Plan fetch and publish
+        id: plan
         run: |
-          # 检查触发方式和用户输入参数
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "Manual trigger detected"
-            UPDATE_MODE="${{ github.event.inputs.update_mode }}"
+          set -e
+          EVENT="${{ github.event_name }}"
+          MODE="${{ github.event.inputs.update_mode }}"
+          [ -z "$MODE" ] && MODE=auto
+          IS_DRY=false
+          if [ "$EVENT" = "workflow_dispatch" ] && [ "$MODE" = "dry-run" ]; then
+            IS_DRY=true
+          fi
+          echo "is_dry_run=$IS_DRY" >> "$GITHUB_OUTPUT"
 
-            case "$UPDATE_MODE" in
-              "skip")
-                echo "User chose to skip all operations"
-                echo "skip=true" >> $GITHUB_OUTPUT
+          run_fetch=false
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            case "$MODE" in
+              force)
+                run_fetch=true
                 ;;
-              "force")
-                echo "User chose to force update, skipping hash check"
-                echo "skip=false" >> $GITHUB_OUTPUT
-                ;;
-              "auto"|*)
-                echo "User chose auto mode, checking for updates..."
-                # 使用TypeScript脚本进行哈希差异检查，避免shell参数过长问题
+              dry-run|auto)
                 if pnpm run diff-hash; then
-                  echo "No update needed, content hash is the same"
-                  echo "skip=true" >> $GITHUB_OUTPUT
+                  echo "No update needed (hash vs npm latest)"
+                  run_fetch=false
                 else
-                  echo "Update needed, content hash is different or error occurred"
-                  echo "skip=false" >> $GITHUB_OUTPUT
+                  run_fetch=true
                 fi
                 ;;
             esac
           else
-            echo "Scheduled trigger detected, checking for updates..."
-            # 使用TypeScript脚本进行哈希差异检查，避免shell参数过长问题
             if pnpm run diff-hash; then
-              echo "No update needed, content hash is the same"
-              echo "skip=true" >> $GITHUB_OUTPUT
+              run_fetch=false
             else
-              echo "Update needed, content hash is different or error occurred"
-              echo "skip=false" >> $GITHUB_OUTPUT
+              run_fetch=true
             fi
           fi
+          echo "run_fetch=$run_fetch" >> "$GITHUB_OUTPUT"
+
+          run_publish=false
+          if [ "$run_fetch" = "true" ] && [ "$IS_DRY" != "true" ]; then
+            run_publish=true
+          fi
+          echo "run_publish=$run_publish" >> "$GITHUB_OUTPUT"
 
       - name: Fetch USB IDs
-        if: steps.check-update.outputs.skip != 'true'
+        if: steps.plan.outputs.run_fetch == 'true'
         run: pnpm run fetch-usb-ids
 
-      - name: Build Lib
-        if: steps.check-update.outputs.skip != 'true'
-        run: pnpm run build:lib
-
-      - name: Build UI
-        if: steps.check-update.outputs.skip != 'true'
-        run: pnpm run build:app --outDir dist/ui
+      - name: Full build (lib, data artefacts, UI)
+        if: steps.plan.outputs.run_fetch == 'true'
+        run: pnpm run build
 
       - name: Upload build artifacts
-        if: steps.check-update.outputs.skip != 'true'
+        if: steps.plan.outputs.run_fetch == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: usb-ids-build-${{ github.run_number }}
           path: |
             dist/
+            usb.ids
             usb.ids.json
             usb.ids.version.json
           retention-days: 30
 
       - name: Update package.json version and README
-        if: steps.check-update.outputs.skip != 'true'
+        if: steps.plan.outputs.run_publish == 'true'
         run: |
-          # 从 usb.ids.version.json 获取版本号
           NEW_VERSION=$(node -p "require('./usb.ids.version.json').version.replace(/^v/, '')")
           echo "New version: $NEW_VERSION"
 
-          # 更新 package.json 中的版本
           node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
@@ -131,37 +127,52 @@ jobs:
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 
-          # 配置 git 用户信息
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          # 提交更改
-          git add package.json
+          git add package.json usb.ids usb.ids.json usb.ids.version.json
           git commit -m "chore: update to version $NEW_VERSION
 
-          - Updated package.json version to $NEW_VERSION
-          - Data updated automatically"
+          - Automated data and CalVer bump"
 
       - name: Create and push tag
-        if: steps.check-update.outputs.skip != 'true'
+        if: steps.plan.outputs.run_publish == 'true'
         run: |
-          # 从 usb.ids.version.json 获取完整版本号作为标签
-          TAG_VERSION=$(node -p "require('./usb.ids.version.json').version")
-          echo "Creating tag: $TAG_VERSION"
-
-          # 创建标签
-          git tag "$TAG_VERSION"
-
-          # 推送提交和标签
+          TAG_VERSION=$(node -p "require('./usb.ids.version.json').version.replace(/^v/, '')")
+          echo "Creating tag: v$TAG_VERSION"
+          git tag -a "v$TAG_VERSION" -m "Release v$TAG_VERSION"
           git push origin main
-          git push origin "$TAG_VERSION"
+          git push origin "v$TAG_VERSION"
 
       - name: Generate changelog
-        if: steps.check-update.outputs.skip != 'true'
+        if: steps.plan.outputs.run_publish == 'true'
         run: pnpm dlx changelogithub
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to npm (trusted publishing via OIDC)
-        if: steps.check-update.outputs.skip != 'true'
-        run: npm publish
+        if: steps.plan.outputs.run_publish == 'true'
+        run: npm publish --provenance
+
+  notify-failure:
+    runs-on: ubuntu-latest
+    needs: [auto-update]
+    if: ${{ always() && needs.auto-update.result == 'failure' }}
+    permissions:
+      issues: write
+    steps:
+      - name: Report failure as GitHub issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `**Auto Update USB.IDS** workflow failed.
+
+            - Run: ${context.runId}
+            - [Open workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[auto-update] failed (${new Date().toISOString().slice(0, 10)} #${context.runId})`,
+              body,
+            });

@@ -3,24 +3,42 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     setupFiles: ['tests/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json-summary'],
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/cli.ts',
+        'src/types.ts',
+        'src/index.ts',
+        'src/core.ts',
+        'src/node/data.ts',
+        'src/utils.ts',
+      ],
+      thresholds: {
+        lines: 80,
+        statements: 80,
+        branches: 68,
+        functions: 78,
+      },
+    },
     projects: [
       {
-        // 添加 "extends: true" 继承根配置中的选项
         extends: true,
         test: {
           include: ['tests/**/*.browser.test.{ts,js}'],
-          // 建议内联配置时定义项目名称
           name: 'happy-dom',
           environment: 'happy-dom',
         },
       },
       {
-        // 添加 "extends: true" 继承根配置中的选项
         extends: true,
         test: {
           include: ['tests/**/*.test.{ts,js}'],
-          exclude: ['tests/**/*.browser.test.{ts,js}'],
-          // 名称标签颜色可自定义
+          exclude: [
+            'tests/**/*.browser.test.{ts,js}',
+            'tests/**/*.bench.{ts,js}',
+          ],
           name: { label: 'node', color: 'green' },
           environment: 'node',
         },

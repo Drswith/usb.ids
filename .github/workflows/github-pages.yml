@@ -44,7 +44,7 @@ jobs:
         run: pnpm install
 
       - name: Build Web App
-        run: pnpm run build:app
+        run: pnpm run build:app --outDir dist/ui
         env:
           VITE_BASE_PATH: /usb.ids/
 
@@ -54,8 +54,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          # 上传 dist 文件夹
-          path: ./dist
+          path: ./dist/ui
 
       - name: Deploy to GitHub Pages
         id: deployment

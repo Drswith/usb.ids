@@ -4,11 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- 禁用缓存的 meta 标签 -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    
     <link rel="icon" type="image/svg+xml" href="/linux.svg" />
     <link rel="apple-touch-icon" href="/linux.svg" />
     
@@ -88,7 +83,7 @@
                     id="searchInput" 
                     placeholder="Search vendors and devices..."
                     class="search-input-header"
-                    aria-describedby="search-help"
+                    aria-describedby="search-help searchAnnounce"
                     autocomplete="off"
                   >
                   <button id="clearSearch" class="clear-btn" style="display: none;" aria-label="Clear search">
@@ -96,6 +91,9 @@
                       <line x1="18" y1="6" x2="6" y2="18"/>
                       <line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
+                  </button>
+                  <button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle color theme" aria-pressed="false">
+                    Theme
                   </button>
                 </div>
               </div>
@@ -133,6 +131,8 @@
       <main class="results-section" role="main" aria-label="USB device search results">
         <div class="container">
           <h2 class="sr-only">Search Results</h2>
+          <span id="search-help" class="sr-only">Type to filter USB vendors and devices. Press slash to focus.</span>
+          <span id="searchAnnounce" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></span>
           
           <!-- Loading State -->
           <div id="loadingState" class="loading-state" role="status" aria-live="polite">
@@ -151,7 +151,9 @@
           </div>
 
           <!-- Results List -->
-          <div id="resultsList" class="results-list" style="display: none;" role="region" aria-label="USB device results" aria-live="polite"></div>
+          <div id="resultsList" class="results-list results-scroll-virtual" style="display: none;" role="region" aria-label="USB device results">
+            <div id="resultsVirtualInner" class="results-virtual-inner" role="list"></div>
+          </div>
 
           <!-- Pagination -->
           <nav id="pagination" class="pagination" style="display: none;" role="navigation" aria-label="Search results pagination">

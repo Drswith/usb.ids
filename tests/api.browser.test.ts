@@ -141,14 +141,16 @@ describe('browser Environment API Tests', () => {
       vi.resetModules()
 
       // Mock fetchUsbIdsData to throw an error
-      vi.doMock('../src/core', () => ({
-        fetchUsbIdsData: vi.fn().mockRejectedValue(new Error('Network error')),
+      vi.doMock('../src/node/data', () => ({
+        loadUsbData: vi.fn().mockRejectedValue(new Error('fail')),
+        loadUsbDataSync: vi.fn(),
+        updateUsbData: vi.fn().mockRejectedValue(new Error('Network error')),
       }))
 
       // Re-import the module
       const { getVendors } = await import('../src/api')
 
-      await expect(getVendors()).rejects.toThrow('Failed to fetch USB ID\'s data')
+      await expect(getVendors(undefined, true)).rejects.toThrow('Failed to load USB ID\'s data')
     })
 
     it('should handle force update parameter correctly', async () => {

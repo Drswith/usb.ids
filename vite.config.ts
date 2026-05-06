@@ -18,6 +18,17 @@ export default defineConfig(({ command }) => {
     },
     build: {
       chunkSizeWarningLimit: 2048,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('legacy/to-v1') || id.includes('legacy\\to-v1'))
+              return 'legacy-v1'
+            if (id.includes('/src/pure/') || id.includes('\\src\\pure\\'))
+              return 'usb-pure'
+            return undefined
+          },
+        },
+      },
     },
   }
 })

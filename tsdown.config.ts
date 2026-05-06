@@ -16,18 +16,27 @@ export default defineConfig((_) => {
     },
     {
       ...share,
+      clean: false,
       entry: [
         'src/index.ts',
       ],
       dts: false,
       format: 'cjs',
     },
-    // 命令行工具
     {
       ...share,
+      clean: false,
       platform: 'node',
       entry: ['src/cli.ts'],
       format: 'esm',
+      dts: false,
+    },
+    {
+      clean: false,
+      entry: ['src/browser.ts'],
+      format: 'esm',
+      platform: 'neutral',
+      target: 'es2022',
       dts: false,
     },
   ]

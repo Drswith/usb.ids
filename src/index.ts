@@ -10,6 +10,9 @@ export * from './core'
 // 导出远程数据获取功能
 export * from './fetcher'
 
+// 导出 legacy 适配
+export { isDatasetV2, toV1 } from './legacy/to-v1'
+
 // 导出数据解析功能
 export * from './parser'
 
