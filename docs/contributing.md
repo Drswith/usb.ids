@@ -26,6 +26,6 @@
 ## UI (`app/`)
 
 - Prefer DOM APIs and safe highlighting (`app/dom-safe.ts`) over `innerHTML` with user-controlled strings.
-- Virtual list logic: `app/virtual-list.ts`.
+- Search UI renders **paginated** results as a responsive CSS grid (`app/styles.css`); `app/virtual-list.ts` remains available if you reintroduce windowed rendering for very long lists.
 
 If you add a script under `scripts/`, document it in `scripts/README.md` and wire an npm script when appropriate.

@@ -1,23 +1,17 @@
 import type { VersionInfo } from './types'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { legacyReleaseToUpstream } from './manifest-ui'
 import { formatDateTime } from './parser/datetime'
 import { parseUsbIdsHeader } from './parser/upstream-header'
+
+export { legacyReleaseToUpstream } from './manifest-ui'
 
 type LegacyManifest = Partial<VersionInfo> & {
   version?: string
   contentHash?: string
   fetchTime?: number
   fetchTimeFormatted?: string
-}
-
-/** Convert legacy CalVer middle segment YYYYMMDD to upstream YYYY.MM.DD (approximate before upstream-dated CalVer). */
-export function legacyReleaseToUpstream(calVer: string): string | null {
-  const m = calVer.match(/^\d+\.(\d{8})\.\d+$/)
-  if (!m)
-    return null
-  const ymd = m[1]
-  return `${ymd.slice(0, 4)}.${ymd.slice(4, 6)}.${ymd.slice(6, 8)}`
 }
 
 export function normalizeVersionInfo(raw: unknown): VersionInfo | null {

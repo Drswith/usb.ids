@@ -1,18 +1,15 @@
 import type { UsbDatasetV2, UsbIdsData, VersionInfo } from '../src/types'
 import type { DeviceResult } from './search'
 import type { ThemeMode } from './theme'
-import type { VirtualListHandle } from './virtual-list'
 import { isDatasetV2, toV1 } from '../src/legacy/to-v1'
+import { normalizeVersionInfoForUi } from '../src/manifest-ui'
 import { loadUsbIdsJson, loadVersionJson } from './data-source'
 import { createDeviceCardElement } from './render/device-card'
 import { searchUsbData } from './search'
 import { initTheme, toggleTheme } from './theme'
 import { getUrlParams, updateUrlParams } from './url-router'
 import { debounce } from './utils'
-import { attachVirtualList } from './virtual-list'
 import './styles.css'
-
-const ROW_HEIGHT_PX = 180
 
 if (import.meta.env?.DEV)
   document.title = `[DEV] ${document.title}`
@@ -24,8 +21,6 @@ let currentPage = 1
 let itemsPerPage = 50
 let versionInfo: VersionInfo | null = null
 let themeMode: ThemeMode = 'dark'
-let virtualList: VirtualListHandle | null = null
-
 let elements: {
   searchInput: HTMLInputElement
   clearSearch: HTMLButtonElement
@@ -77,10 +72,6 @@ function updatePagination(totalItems: number, currentPageNum: number): void {
 }
 
 function showEmptyState(): void {
-  if (virtualList) {
-    virtualList.destroy()
-    virtualList = null
-  }
   elements.resultsList.style.display = 'none'
   elements.emptyState.style.display = 'flex'
   elements.pagination.style.display = 'none'
@@ -103,23 +94,16 @@ function renderResults(results: DeviceResult[], page: number = 1): void {
 
   const query = elements.searchInput.value.trim()
 
-  if (virtualList) {
-    virtualList.destroy()
-    virtualList = null
-  }
-
   elements.resultsList.style.display = 'block'
   elements.emptyState.style.display = 'none'
 
-  virtualList = attachVirtualList({
-    scrollEl: elements.resultsList,
-    innerEl: elements.resultsInner,
-    itemHeight: ROW_HEIGHT_PX,
-    getCount: () => currentPageSlice.length,
-    renderItem: i => createDeviceCardElement(currentPageSlice[i]!, query),
-  })
-  virtualList.scrollToTop()
-  virtualList.refresh()
+  elements.resultsInner.replaceChildren()
+  const frag = document.createDocumentFragment()
+  for (let i = 0; i < currentPageSlice.length; i++) {
+    frag.appendChild(createDeviceCardElement(currentPageSlice[i]!, query))
+  }
+  elements.resultsInner.appendChild(frag)
+  elements.resultsList.scrollTop = 0
 
   updatePagination(results.length, page)
   announceSearch(results.length, page, itemsPerPage)
@@ -137,7 +121,8 @@ function updateStats(): void {
 
 async function loadVersionInfo(): Promise<void> {
   try {
-    versionInfo = await loadVersionJson<VersionInfo>()
+    const raw = await loadVersionJson()
+    versionInfo = normalizeVersionInfoForUi(raw)
     updateVersionDisplay()
   }
   catch (error) {
@@ -146,15 +131,24 @@ async function loadVersionInfo(): Promise<void> {
 }
 
 function updateVersionDisplay(): void {
-  if (!versionInfo)
+  if (!versionInfo?.releaseVersion) {
+    elements.versionNumber.textContent = '—'
+    elements.upstreamVersion.textContent = '—'
+    elements.fetchTime.replaceChildren()
+    elements.fetchTime.textContent = '—'
     return
-  elements.versionNumber.textContent = versionInfo?.releaseVersion?.startsWith('v')
-    ? versionInfo.releaseVersion
-    : `v${versionInfo.releaseVersion}`
+  }
 
-  elements.upstreamVersion.textContent = versionInfo.upstreamVersion
+  const rv = versionInfo.releaseVersion
+  elements.versionNumber.textContent = rv.startsWith('v') ? rv : `v${rv}`
+  elements.upstreamVersion.textContent = versionInfo.upstreamVersion || '—'
 
   const fetchDate = new Date(versionInfo.buildTime)
+  if (Number.isNaN(fetchDate.getTime())) {
+    elements.fetchTime.replaceChildren()
+    elements.fetchTime.textContent = versionInfo.buildTimeFormatted || '—'
+    return
+  }
   createTimeTooltip(elements.fetchTime, fetchDate, 'Last Updated')
 }
 
@@ -266,7 +260,7 @@ async function initializeApp(): Promise<void> {
       loadingState: document.getElementById('loadingState') as HTMLElement,
       emptyState: document.getElementById('emptyState') as HTMLElement,
       resultsList: document.getElementById('resultsList') as HTMLElement,
-      resultsInner: document.getElementById('resultsVirtualInner') as HTMLElement,
+      resultsInner: document.getElementById('resultsGridInner') as HTMLElement,
       pagination: document.getElementById('pagination') as HTMLElement,
       prevPage: document.getElementById('prevPage') as HTMLButtonElement,
       nextPage: document.getElementById('nextPage') as HTMLButtonElement,

@@ -70,7 +70,7 @@
               </h1>
               <p class="subtitle">An open source database for quickly finding USB device vendor and product information</p>
             </div>
-            <div class="header-right">
+            <div class="header-center">
               <div class="search-container-header">
                 <div class="search-box-header">
                   <label for="searchInput" class="sr-only">Search USB vendors and devices</label>
@@ -92,36 +92,36 @@
                       <line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
                   </button>
-                  <button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle color theme" aria-pressed="false">
-                    Theme
-                  </button>
                 </div>
+                <button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle color theme" aria-pressed="false">
+                  Theme
+                </button>
               </div>
-              <div class="header-info">
-                <div class="version-info-header" aria-label="Database version information">
-                  <div class="version-item">
-                    <span class="version-label">Version:</span>
-                    <span class="version-value" id="versionNumber" aria-label="Current database version">-</span>
-                  </div>
-                  <div class="version-item">
-                    <span class="version-label">Upstream:</span>
-                    <span class="version-value" id="upstreamVersion" aria-label="Upstream usb.ids version">-</span>
-                  </div>
-                  <div class="version-item">
-                    <span class="version-label">Last Updated:</span>
-                    <span class="version-value" id="fetchTime" aria-label="Last update time">-</span>
-                  </div>
+            </div>
+            <div class="header-right">
+              <aside class="header-stats" aria-label="Database statistics">
+                <div class="header-stat">
+                  <div class="stat-number" id="headerTotalVendors" aria-label="Total vendors">-</div>
+                  <div class="stat-label">Vendors</div>
                 </div>
-                <aside class="header-stats" aria-label="Database statistics">
-                  <div class="header-stat">
-                    <div class="stat-number" id="headerTotalVendors" aria-label="Total vendors">-</div>
-                    <div class="stat-label">Vendors</div>
-                  </div>
-                  <div class="header-stat">
-                    <div class="stat-number" id="headerTotalDevices" aria-label="Total devices">-</div>
-                    <div class="stat-label">Devices</div>
-                  </div>
-                </aside>
+                <div class="header-stat">
+                  <div class="stat-number" id="headerTotalDevices" aria-label="Total devices">-</div>
+                  <div class="stat-label">Devices</div>
+                </div>
+              </aside>
+              <div class="version-info-header" aria-label="Database version information">
+                <div class="version-item">
+                  <span class="version-label">Version:</span>
+                  <span class="version-value" id="versionNumber" aria-label="Current database version">-</span>
+                </div>
+                <div class="version-item">
+                  <span class="version-label">Upstream:</span>
+                  <span class="version-value" id="upstreamVersion" aria-label="Upstream usb.ids version">-</span>
+                </div>
+                <div class="version-item">
+                  <span class="version-label">Last Updated:</span>
+                  <span class="version-value" id="fetchTime" aria-label="Last update time">-</span>
+                </div>
               </div>
             </div>
           </div>
@@ -155,8 +155,8 @@
           </div>
 
           <!-- Results List -->
-          <div id="resultsList" class="results-list results-scroll-virtual" style="display: none;" role="region" aria-label="USB device results">
-            <div id="resultsVirtualInner" class="results-virtual-inner" role="list"></div>
+          <div id="resultsList" class="results-list results-grid-page" style="display: none;" role="region" aria-label="USB device results">
+            <div id="resultsGridInner" class="results-grid-inner" role="list"></div>
           </div>
 
           <!-- Pagination -->
