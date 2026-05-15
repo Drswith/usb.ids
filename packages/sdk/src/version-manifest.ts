@@ -75,10 +75,13 @@ export function readPackageVersion(repoRoot: string): string {
 }
 
 export function readCurrentReleaseVersion(repoRoot: string, existing: VersionInfo | null): string {
-  const pkg = readPackageVersion(repoRoot);
   const fromManifest = existing?.releaseVersion ?? (existing as LegacyManifest | null)?.version;
   if (fromManifest && /^\d+\.\d{8}\.\d+$/.test(fromManifest)) return fromManifest;
-  return pkg;
+  try {
+    return readPackageVersion(repoRoot);
+  } catch {
+    return fromManifest ?? "2.0.0";
+  }
 }
 
 export function getUpstreamHashFromManifest(v: VersionInfo | null): string | undefined {

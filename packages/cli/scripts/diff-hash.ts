@@ -6,10 +6,10 @@
  */
 
 import * as process from "node:process";
-import { USB_IDS_SOURCE } from "../src/config";
-import { downloadFromUrls } from "../src/fetcher";
-import { generateContentHash } from "../src/parser";
-import { logger } from "../src/utils";
+import { USB_IDS_SOURCE } from "../../sdk/src/config";
+import { downloadFromUrls } from "../../sdk/src/fetcher";
+import { generateContentHash } from "../../sdk/src/parser";
+import { logger } from "../../sdk/src/utils";
 
 interface NpmVersionInfo {
   upstreamHash?: string;

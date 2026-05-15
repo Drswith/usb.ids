@@ -3,14 +3,11 @@
   "version": "1.0.1766044584391",
   "description": "Secondary Node/browser SDK for usb.ids.",
   "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "sideEffects": false,
-  "scripts": {
-    "lint": "oxlint src tests",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --config vitest.config.ts",
-    "build": "tsdown --config tsdown.config.ts --env.NODE_ENV=production"
-  },
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -25,10 +22,13 @@
     },
     "./package.json": "./package.json"
   },
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --config vitest.config.ts",
+    "build": "tsdown --config tsdown.config.ts"
+  },
   "engines": {
     "node": ">=18"
-  },
-  "files": [
-    "dist"
-  ]
+  }
 }

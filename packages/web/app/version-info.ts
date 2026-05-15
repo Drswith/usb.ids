@@ -57,7 +57,6 @@ export function normalizeVersionInfoForUi(raw: unknown): VersionInfo | null {
     upstreamHash,
     buildTime,
     buildTimeFormatted,
-    sourceUrl: typeof r.sourceUrl === "string" ? r.sourceUrl : "",
     vendorCount: typeof r.vendorCount === "number" ? r.vendorCount : 0,
     deviceCount: typeof r.deviceCount === "number" ? r.deviceCount : 0,
     schemaVersion: 2,

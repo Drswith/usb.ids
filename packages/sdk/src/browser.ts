@@ -8,7 +8,8 @@ import { ERROR_CODES, UsbApiError } from "./errors";
 export { ERROR_CODES, UsbApiError } from "./errors";
 export type { DeviceFilter, VendorFilter } from "./pure/query";
 export { filterDevices, filterVendors, searchInData } from "./pure/query";
-export type { UsbDevice, UsbIdsData, UsbVendor, VersionInfo } from "./types";
+export { isDatasetV2, toV1 } from "./legacy/to-v1";
+export type { UsbDatasetV2, UsbDevice, UsbIdsData, UsbVendor, VersionInfo } from "./types";
 
 export async function loadUsbDataFromUrl(url: string): Promise<UsbIdsData> {
   const res = await fetch(url);

@@ -4,12 +4,7 @@ import { createServer } from "node:http";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import sirv from "sirv";
-import {
-  config,
-  fetchUsbIdsData,
-  loadVersionInfo,
-  saveUsbIdsToFile,
-} from "@usb-ids/sdk";
+import { config, fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile } from "@usb-ids/sdk";
 
 const EXIT_CODES = {
   SUCCESS: 0,
@@ -76,14 +71,19 @@ function resolveUiDistDir(): string {
   return path.resolve(fromDistSibling);
 }
 
-async function updateUsbIdsData(forceUpdate = false): Promise<number> {
+async function updateUsbIdsData(
+  options: { forceUpdate?: boolean; offline?: boolean } = {},
+): Promise<number> {
   try {
+    const forceUpdate = options.forceUpdate ?? false;
+    const offline = options.offline ?? false;
     const root = process.cwd();
     const fallbackFile = config.USB_IDS_JSON_FILE;
     const jsonFile = path.join(root, config.USB_IDS_JSON_FILE);
+    const sources = offline ? [] : config.USB_IDS_SOURCE;
 
     const { data, source, versionInfo } = await fetchUsbIdsData(
-      config.USB_IDS_SOURCE,
+      sources,
       fallbackFile,
       root,
       forceUpdate,
@@ -342,6 +342,7 @@ Commands:
 
 Options:
   --force         Force update (ignore time check)
+  --offline       Skip network fetch and only use local fallback data
   --json          Output machine-readable JSON (version/check)
   --port <port>   Specify web server port (default 3000)
 
@@ -367,7 +368,10 @@ async function runCli(): Promise<void> {
   switch (command) {
     case "update":
     case "fetch":
-      exitCode = await updateUsbIdsData(args.includes("--force"));
+      exitCode = await updateUsbIdsData({
+        forceUpdate: args.includes("--force"),
+        offline: args.includes("--offline"),
+      });
       break;
 
     case "version":

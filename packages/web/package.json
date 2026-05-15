@@ -5,6 +5,7 @@
   "description": "Private Vite web UI package for usb.ids.",
   "type": "module",
   "scripts": {
+    "lint": "oxlint app",
     "dev": "vite --port 5173",
     "build": "vite build",
     "preview": "vite preview",

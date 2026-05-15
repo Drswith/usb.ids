@@ -1,14 +1,14 @@
 #!/usr/bin/env tsx
 /**
- * Build distributable data artefacts from repo-root usb.ids.json (schema v2).
+ * Build distributable data artefacts from CLI-package usb.ids.json (schema v2).
  */
-import type { UsbDatasetV2, UsbDeviceV2, UsbIdsData } from "../src/types";
+import type { UsbDatasetV2, UsbDeviceV2, UsbIdsData } from "../../sdk/src/types";
 import { Buffer } from "node:buffer";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as process from "node:process";
 import * as zlib from "node:zlib";
-import { isDatasetV2 } from "../src/legacy/to-v1";
+import { isDatasetV2 } from "../../sdk/src/legacy/to-v1";
 
 const root = process.cwd();
 const srcPath = path.join(root, "usb.ids.json");
