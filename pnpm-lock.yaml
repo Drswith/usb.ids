@@ -44,9 +44,6 @@ importers:
 
   packages/cli:
     dependencies:
-      '@usb-ids/sdk':
-        specifier: workspace:*
-        version: link:../sdk
       sirv:
         specifier: ^2.0.4
         version: 2.0.4
