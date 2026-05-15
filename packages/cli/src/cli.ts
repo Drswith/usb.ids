@@ -1,24 +1,66 @@
 #!/usr/bin/env node
-
-/**
- * USB设备数据CLI工具
- * 提供命令行接口来管理USB设备数据
- */
-
 import * as fs from "node:fs";
 import { createServer } from "node:http";
 import * as path from "node:path";
-import * as process from "node:process";
 import { fileURLToPath } from "node:url";
 import sirv from "sirv";
 import {
-  UI_LOCAL_BASE_URL,
-  USB_IDS_JSON_FILE,
-  USB_IDS_SOURCE,
-  USB_IDS_VERSION_JSON_FILE,
-} from "./config";
-import { fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile } from "./core";
-import { colors, logger } from "./utils";
+  config,
+  fetchUsbIdsData,
+  loadVersionInfo,
+  saveUsbIdsToFile,
+} from "@usb-ids/sdk";
+
+const EXIT_CODES = {
+  SUCCESS: 0,
+  USAGE: 2,
+  DATA_MISSING: 3,
+  NETWORK: 4,
+  PARSE: 5,
+  FILESYSTEM: 6,
+} as const;
+
+function stdout(message: string): void {
+  process.stdout.write(`${message}\n`);
+}
+
+function stderr(message: string): void {
+  process.stderr.write(`${message}\n`);
+}
+
+function jsonStdout(value: unknown): void {
+  process.stdout.write(`${JSON.stringify(value)}\n`);
+}
+
+function classifyError(error: unknown): number {
+  const msg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+  if (
+    msg.includes("unable to fetch") ||
+    msg.includes("download") ||
+    msg.includes("network") ||
+    msg.includes("http ")
+  ) {
+    return EXIT_CODES.NETWORK;
+  }
+  if (
+    msg.includes("parse") ||
+    msg.includes("json") ||
+    msg.includes("invalid") ||
+    msg.includes("resolve upstream version")
+  ) {
+    return EXIT_CODES.PARSE;
+  }
+  if (
+    msg.includes("save") ||
+    msg.includes("write") ||
+    msg.includes("read") ||
+    msg.includes("enoent") ||
+    msg.includes("eacces")
+  ) {
+    return EXIT_CODES.FILESYSTEM;
+  }
+  return EXIT_CODES.DATA_MISSING;
+}
 
 function getCliPackageRoot(): string {
   const cliDir = path.dirname(fileURLToPath(import.meta.url));
@@ -34,113 +76,124 @@ function resolveUiDistDir(): string {
   return path.resolve(fromDistSibling);
 }
 
-/**
- * 主要的数据更新函数
- */
-async function updateUsbIdsData(forceUpdate = false): Promise<void> {
+async function updateUsbIdsData(forceUpdate = false): Promise<number> {
   try {
     const root = process.cwd();
-    const fallbackFile = USB_IDS_JSON_FILE;
-    const jsonFile = path.join(root, USB_IDS_JSON_FILE);
+    const fallbackFile = config.USB_IDS_JSON_FILE;
+    const jsonFile = path.join(root, config.USB_IDS_JSON_FILE);
 
-    logger.start("Starting USB ID's data update...");
-
-    // 获取USB设备数据
-    logger.info("Fetching USB ID's data...");
     const { data, source, versionInfo } = await fetchUsbIdsData(
-      USB_IDS_SOURCE,
+      config.USB_IDS_SOURCE,
       fallbackFile,
       root,
       forceUpdate,
     );
 
-    // 保存JSON格式数据
-    logger.info("Saving JSON format data...");
     await saveUsbIdsToFile(data, jsonFile);
 
-    // 输出统计信息
-    logger.success(`Data update completed!`);
-    logger.info(`Data source: ${source === "api" ? "Remote API" : "Local fallback file"}`);
-    logger.info(`Vendor count: ${versionInfo.vendorCount}`);
-    logger.info(`Device count: ${versionInfo.deviceCount}`);
-    logger.info(`Release: ${versionInfo.releaseVersion}`);
-    logger.info(`Upstream database: ${versionInfo.upstreamVersion}`);
-    logger.info(`Build time: ${versionInfo.buildTimeFormatted}`);
+    stdout("Data update completed");
+    stdout(`Data source: ${source === "api" ? "Remote API" : "Local fallback file"}`);
+    stdout(`Vendor count: ${versionInfo.vendorCount}`);
+    stdout(`Device count: ${versionInfo.deviceCount}`);
+    stdout(`Release: ${versionInfo.releaseVersion}`);
+    stdout(`Upstream database: ${versionInfo.upstreamVersion}`);
+    stdout(`Build time: ${versionInfo.buildTimeFormatted}`);
+    return EXIT_CODES.SUCCESS;
   } catch (error) {
-    logger.error(`Update failed: ${(error as Error).message}`);
-    process.exit(1);
+    stderr(`Update failed: ${error instanceof Error ? error.message : String(error)}`);
+    return classifyError(error);
   }
 }
 
-/**
- * 显示当前版本信息
- */
-function showVersionInfo(): void {
+function showVersionInfo(asJson: boolean): number {
   try {
     const root = process.cwd();
-    const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE);
+    const versionFile = path.join(root, config.USB_IDS_VERSION_JSON_FILE);
 
     if (!fs.existsSync(versionFile)) {
-      logger.warn("Version info file does not exist, please run update command first");
-      return;
+      const message = "Version info file does not exist, please run `usb-ids fetch` first";
+      if (asJson) jsonStdout({ ok: false, code: "DATA_MISSING", message });
+      else stderr(message);
+      return EXIT_CODES.DATA_MISSING;
     }
 
     const versionInfo = loadVersionInfo(versionFile);
     if (!versionInfo) {
-      logger.error("Unable to read version information");
-      return;
+      const message = "Unable to read version information";
+      if (asJson) jsonStdout({ ok: false, code: "PARSE_ERROR", message });
+      else stderr(message);
+      return EXIT_CODES.PARSE;
     }
 
-    logger.info("Current version information:");
-    console.log(`  Release: ${versionInfo.releaseVersion}`);
-    console.log(`  Upstream database: ${versionInfo.upstreamVersion}`);
-    console.log(`  Vendor count: ${versionInfo.vendorCount}`);
-    console.log(`  Device count: ${versionInfo.deviceCount}`);
-    console.log(`  Build time: ${versionInfo.buildTimeFormatted}`);
-    console.log(`  Upstream hash: ${versionInfo.upstreamHash}`);
+    if (asJson) {
+      jsonStdout({ ok: true, version: versionInfo });
+    } else {
+      stdout("Current version information:");
+      stdout(`  Release: ${versionInfo.releaseVersion}`);
+      stdout(`  Upstream database: ${versionInfo.upstreamVersion}`);
+      stdout(`  Vendor count: ${versionInfo.vendorCount}`);
+      stdout(`  Device count: ${versionInfo.deviceCount}`);
+      stdout(`  Build time: ${versionInfo.buildTimeFormatted}`);
+      stdout(`  Upstream hash: ${versionInfo.upstreamHash}`);
+    }
+    return EXIT_CODES.SUCCESS;
   } catch (error) {
-    logger.error(`Failed to get version information: ${(error as Error).message}`);
+    const message = `Failed to get version information: ${error instanceof Error ? error.message : String(error)}`;
+    if (asJson) jsonStdout({ ok: false, code: "FILESYSTEM_ERROR", message });
+    else stderr(message);
+    return EXIT_CODES.FILESYSTEM;
   }
 }
 
-/**
- * 检查是否需要更新
- */
-function checkUpdate(): void {
+function checkUpdate(asJson: boolean): number {
   try {
     const root = process.cwd();
-    const versionFile = path.join(root, USB_IDS_VERSION_JSON_FILE);
-
+    const versionFile = path.join(root, config.USB_IDS_VERSION_JSON_FILE);
     const versionInfo = loadVersionInfo(versionFile);
 
     if (!versionInfo) {
-      logger.warn("Version manifest missing — run usb-ids fetch first");
-      return;
+      const message = "Version manifest missing — run `usb-ids fetch` first";
+      if (asJson) jsonStdout({ ok: false, code: "DATA_MISSING", message });
+      else stderr(message);
+      return EXIT_CODES.DATA_MISSING;
     }
-
-    logger.info("Local manifest (run fetch to refresh from network)");
-    logger.info(`Upstream database: ${versionInfo.upstreamVersion}`);
-    logger.info(`Release: ${versionInfo.releaseVersion}`);
-    logger.info(`Build time: ${versionInfo.buildTimeFormatted}`);
+    const payload = {
+      ok: true,
+      status: "manifest_present",
+      needsUpdateCheck: true,
+      version: versionInfo,
+    };
+    if (asJson) {
+      jsonStdout(payload);
+    } else {
+      stdout("Local manifest (run fetch to refresh from network)");
+      stdout(`Upstream database: ${versionInfo.upstreamVersion}`);
+      stdout(`Release: ${versionInfo.releaseVersion}`);
+      stdout(`Build time: ${versionInfo.buildTimeFormatted}`);
+    }
+    return EXIT_CODES.SUCCESS;
   } catch (error) {
-    logger.error(`Check update failed: ${(error as Error).message}`);
+    const message = `Check update failed: ${error instanceof Error ? error.message : String(error)}`;
+    if (asJson) jsonStdout({ ok: false, code: "FILESYSTEM_ERROR", message });
+    else stderr(message);
+    return EXIT_CODES.FILESYSTEM;
   }
 }
 
 /**
  * 启动静态web服务器
  */
-async function startWebServer(port = 3000): Promise<void> {
+async function startWebServer(port = 3000): Promise<number> {
   try {
     const distDir = resolveUiDistDir();
     const pkgRoot = path.resolve(getCliPackageRoot());
     const distDirResolved = path.resolve(distDir);
 
     if (!fs.existsSync(distDirResolved)) {
-      logger.error(
+      stderr(
         "dist/ui directory does not exist, please run build command first: pnpm run build:app",
       );
-      process.exit(1);
+      return EXIT_CODES.FILESYSTEM;
     }
 
     function isPathInsideDir(file: string, dir: string): boolean {
@@ -148,10 +201,8 @@ async function startWebServer(port = 3000): Promise<void> {
       return rel === "" || (!rel.startsWith("..") && !path.isAbsolute(rel));
     }
 
-    function logResp(statusCode: number, start: number, success = true): void {
-      logger.info(
-        `${colors.yellow}HTTP${colors.reset} ${success ? colors.green : colors.red}Returned ${statusCode} in ${Date.now() - start} ms${colors.reset}`,
-      );
+    function logResp(statusCode: number, start: number): void {
+      stdout(`HTTP Returned ${statusCode} in ${Date.now() - start} ms`);
     }
 
     const prod = process.env.NODE_ENV === "production";
@@ -166,9 +217,7 @@ async function startWebServer(port = 3000): Promise<void> {
     const server = createServer((req, res) => {
       const startTime = Date.now();
       const rawUrl = req.url ?? "/";
-      logger.info(
-        `${colors.yellow}HTTP${colors.reset} ${colors.cyan}${req.method} ${rawUrl}${colors.reset}`,
-      );
+      stdout(`HTTP ${req.method} ${rawUrl}`);
 
       let urlPath: string;
       try {
@@ -176,45 +225,45 @@ async function startWebServer(port = 3000): Promise<void> {
       } catch {
         res.writeHead(400);
         res.end("Bad Request");
-        logResp(400, startTime, false);
+        logResp(400, startTime);
         return;
       }
 
       if (req.method !== "GET" && req.method !== "HEAD") {
         res.writeHead(405);
         res.end("Method Not Allowed");
-        logResp(405, startTime, false);
+        logResp(405, startTime);
         return;
       }
 
       if (urlPath === "/" || urlPath === "") {
-        res.writeHead(302, { Location: UI_LOCAL_BASE_URL });
+        res.writeHead(302, { Location: config.UI_LOCAL_BASE_URL });
         res.end();
         logResp(302, startTime);
         return;
       }
 
       const rel =
-        urlPath === UI_LOCAL_BASE_URL
+        urlPath === config.UI_LOCAL_BASE_URL
           ? "index.html"
-          : urlPath.startsWith(UI_LOCAL_BASE_URL)
-            ? urlPath.slice(UI_LOCAL_BASE_URL.length) || "index.html"
+          : urlPath.startsWith(config.UI_LOCAL_BASE_URL)
+            ? urlPath.slice(config.UI_LOCAL_BASE_URL.length) || "index.html"
             : urlPath.replace(/^\//, "");
 
       const base = path.basename(rel.split("?")[0] ?? rel);
-      if (base === USB_IDS_JSON_FILE || base === USB_IDS_VERSION_JSON_FILE) {
+      if (base === config.USB_IDS_JSON_FILE || base === config.USB_IDS_VERSION_JSON_FILE) {
         const dataPath = path.resolve(pkgRoot, base);
         if (!isPathInsideDir(dataPath, pkgRoot)) {
           res.writeHead(403);
           res.end("Forbidden");
-          logResp(403, startTime, false);
+          logResp(403, startTime);
           return;
         }
         fs.readFile(dataPath, (err, data) => {
           if (err) {
             res.writeHead(404);
             res.end("Not Found");
-            logResp(404, startTime, false);
+            logResp(404, startTime);
             return;
           }
           res.writeHead(200, { "Content-Type": "application/json" });
@@ -228,14 +277,14 @@ async function startWebServer(port = 3000): Promise<void> {
         return;
       }
 
-      if (!urlPath.startsWith(UI_LOCAL_BASE_URL)) {
+      if (!urlPath.startsWith(config.UI_LOCAL_BASE_URL)) {
         res.writeHead(404);
         res.end("Not Found");
-        logResp(404, startTime, false);
+        logResp(404, startTime);
         return;
       }
 
-      let inner = urlPath.slice(UI_LOCAL_BASE_URL.length);
+      let inner = urlPath.slice(config.UI_LOCAL_BASE_URL.length);
       if (!inner || inner === "/") inner = "/";
       else if (!inner.startsWith("/")) inner = `/${inner}`;
 
@@ -247,33 +296,29 @@ async function startWebServer(port = 3000): Promise<void> {
         (req as { url?: string }).url = prevUrl;
         res.statusCode = 404;
         res.end("Not Found");
-        logResp(404, startTime, false);
+        logResp(404, startTime);
       });
     });
 
     server.listen(port, () => {
-      logger.success(`usb.ids Web UI ${colors.green}server started!${colors.reset}`);
-      logger.info(
-        `Access URL: ${colors.cyan}http://localhost:${port}${UI_LOCAL_BASE_URL}${colors.reset}`,
-      );
-      logger.info(
-        `Press ${colors.yellow}Control+C${colors.reset} to ${colors.yellow}stop${colors.reset} the server`,
-      );
+      stdout("usb.ids Web UI server started");
+      stdout(`Access URL: http://localhost:${port}${config.UI_LOCAL_BASE_URL}`);
+      stdout("Press Control+C to stop the server");
     });
 
     return new Promise<void>((resolve, reject) => {
       server.on("error", (error) => {
-        logger.error(`Server error: ${error.message}`);
+        stderr(`Server error: ${error.message}`);
         reject(error);
       });
       server.on("close", () => {
-        logger.success("Server stopped");
+        stdout("Server stopped");
         resolve();
       });
-    });
+    }).then(() => EXIT_CODES.SUCCESS);
   } catch (error) {
-    logger.error(`Failed to start web server: ${(error as Error).message}`);
-    process.exit(1);
+    stderr(`Failed to start web server: ${error instanceof Error ? error.message : String(error)}`);
+    return EXIT_CODES.FILESYSTEM;
   }
 }
 
@@ -281,7 +326,7 @@ async function startWebServer(port = 3000): Promise<void> {
  * 显示帮助信息
  */
 function showHelp(): void {
-  console.log(`
+  stdout(`
 USB Device Data Management Tool
 
 Usage:
@@ -297,6 +342,7 @@ Commands:
 
 Options:
   --force         Force update (ignore time check)
+  --json          Output machine-readable JSON (version/check)
   --port <port>   Specify web server port (default 3000)
 
 Examples:
@@ -315,20 +361,22 @@ Examples:
 async function runCli(): Promise<void> {
   const args = process.argv.slice(2);
   const command = args[0];
+  const asJson = args.includes("--json");
+  let exitCode: number = EXIT_CODES.SUCCESS;
 
   switch (command) {
     case "update":
     case "fetch":
-      await updateUsbIdsData(args.includes("--force"));
+      exitCode = await updateUsbIdsData(args.includes("--force"));
       break;
 
     case "version":
     case "info":
-      showVersionInfo();
+      exitCode = showVersionInfo(asJson);
       break;
 
     case "check":
-      checkUpdate();
+      exitCode = checkUpdate(asJson);
       break;
 
     case "ui": {
@@ -340,10 +388,10 @@ async function runCli(): Promise<void> {
         if (!Number.isNaN(parsedPort) && parsedPort > 0 && parsedPort < 65536) {
           port = parsedPort;
         } else {
-          logger.error("Invalid port number, using default port 3000");
+          stderr("Invalid port number, using default port 3000");
         }
       }
-      await startWebServer(port);
+      exitCode = await startWebServer(port);
       break;
     }
 
@@ -355,18 +403,18 @@ async function runCli(): Promise<void> {
 
     default:
       if (!command) {
-        // 默认执行更新
-        await updateUsbIdsData();
+        exitCode = await updateUsbIdsData();
       } else {
-        logger.error(`Unknown command: ${command}`);
-        logger.info("Use --help to see available commands");
-        process.exit(1);
+        stderr(`Unknown command: ${command}`);
+        stderr("Use --help to see available commands");
+        exitCode = EXIT_CODES.USAGE;
       }
       break;
   }
+  process.exitCode = exitCode;
 }
 
 runCli().catch((error) => {
-  logger.error(`CLI execution failed: ${error.message}`);
-  process.exit(1);
+  stderr(`CLI execution failed: ${error instanceof Error ? error.message : String(error)}`);
+  process.exitCode = classifyError(error);
 });

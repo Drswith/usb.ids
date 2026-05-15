@@ -6,20 +6,18 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "lint": "pnpm -C ../.. exec oxlint src tests",
-    "typecheck": "pnpm -C ../.. exec tsc --noEmit -p tsconfig.json",
-    "test": "pnpm -C ../.. exec vitest run --config vitest.config.ts",
-    "build": "pnpm -C ../.. exec tsdown --config tsdown.config.ts --env.NODE_ENV=production"
+    "lint": "oxlint src tests",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --config vitest.config.ts",
+    "build": "tsdown --config tsdown.config.ts --env.NODE_ENV=production"
   },
-  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "browser": "./dist/browser.js",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.js"
     },
     "./browser": {
       "types": "./dist/index.d.ts",
@@ -29,5 +27,8 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }

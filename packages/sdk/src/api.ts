@@ -10,8 +10,8 @@ import { loadUsbData, type SdkDataSourceOptions, updateUsbData } from "./node/da
 import { filterDevices, filterVendors, searchInData } from "./pure/query";
 
 export { ERROR_CODES, UsbApiError } from "./errors";
-export { loadUsbData, loadUsbDataSync, updateUsbData } from "./node/data";
-export type { SdkDataSourceOptions } from "./node/data";
+export { loadUsbData, loadUsbDataSync, resolveSdkDataSource, updateUsbData } from "./node/data";
+export type { ResolvedSdkDataSource, SdkDataSourceOptions } from "./node/data";
 export type { DeviceFilter, VendorFilter } from "./pure/query";
 export { filterDevices, filterVendors, searchInData } from "./pure/query";
 

@@ -8,13 +8,26 @@ import { getPackageRoot } from "../paths";
 
 export interface SdkDataSourceOptions {
   rootDir?: string;
+  /** Optional directory containing usb.ids data artifacts (alias of rootDir). */
+  dataDir?: string;
   dataFile?: string;
   fallbackFile?: string;
   upstreamUrls?: string[];
 }
 
-function resolveDataSource(options: SdkDataSourceOptions = {}) {
-  const rootDir = options.rootDir ?? getPackageRoot();
+export interface ResolvedSdkDataSource {
+  rootDir: string;
+  dataFile: string;
+  fallbackFile: string;
+  upstreamUrls: string[];
+}
+
+/**
+ * Resolve a concrete data source; callers can inject `rootDir`/`dataDir` to avoid path coupling.
+ */
+export function resolveSdkDataSource(options: SdkDataSourceOptions = {}): ResolvedSdkDataSource {
+  const envRoot = process.env.USB_IDS_DATA_ROOT;
+  const rootDir = options.rootDir ?? options.dataDir ?? envRoot ?? getPackageRoot();
   return {
     rootDir,
     dataFile: options.dataFile ?? USB_IDS_JSON_FILE,
@@ -24,7 +37,7 @@ function resolveDataSource(options: SdkDataSourceOptions = {}) {
 }
 
 export function loadUsbDataSync(options: SdkDataSourceOptions = {}): UsbIdsData {
-  const source = resolveDataSource(options);
+  const source = resolveSdkDataSource(options);
   const p = path.join(source.rootDir, source.dataFile);
   if (!fs.existsSync(p)) {
     throw new Error(
@@ -43,7 +56,7 @@ export async function loadUsbData(options: SdkDataSourceOptions = {}): Promise<U
 export async function updateUsbData(
   options: SdkDataSourceOptions & { force?: boolean } = {},
 ): Promise<Awaited<ReturnType<typeof fetchUsbIdsData>>> {
-  const source = resolveDataSource(options);
+  const source = resolveSdkDataSource(options);
   return fetchUsbIdsData(
     source.upstreamUrls,
     source.fallbackFile,

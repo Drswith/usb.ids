@@ -3,6 +3,12 @@
   "version": "1.0.1766044584391",
   "description": "USB IDs CLI and data artifacts package.",
   "license": "MIT",
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --config vitest.config.ts",
+    "build": "tsdown --config tsdown.config.ts --env.NODE_ENV=production"
+  },
   "bin": {
     "usb-ids": "./dist/cli.js"
   },
@@ -15,5 +21,12 @@
   "type": "module",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@usb-ids/sdk": "workspace:*",
+    "sirv": "^2.0.4"
+  },
+  "devDependencies": {
+    "execa": "^9.6.0"
   }
 }
