@@ -1,8 +1,11 @@
 # monorepo-packaging Specification
 
 ## Purpose
+
 TBD - created by archiving change agent-first-monorepo. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Pnpm Workspace Layout
 
 The repository SHALL be organized as a pnpm monorepo with `packages/sdk`, `packages/cli`, and `packages/web` as workspace packages.
@@ -42,4 +45,3 @@ The auto-update workflow SHALL publish package artifacts from the correct worksp
 - **THEN** it updates generated data in the CLI package ownership path
 - **THEN** it builds all required package artifacts
 - **THEN** it publishes the intended npm package or packages without relying on root package publication
-

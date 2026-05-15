@@ -1,8 +1,11 @@
 # cli-primary-surface Specification
 
 ## Purpose
+
 TBD - created by archiving change agent-first-monorepo. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: CLI First Documentation
 
 The repository SHALL document CLI installation, command usage, and automation examples before Node SDK usage.
@@ -48,4 +51,3 @@ The repository SHALL include integration tests that execute the built CLI binary
 - **WHEN** CI runs CLI integration tests
 - **THEN** tests invoke the built `usb-ids` binary
 - **THEN** tests cover help, version, check, fetch dry-run or fixture mode, JSON output, and UI startup failure behavior
-

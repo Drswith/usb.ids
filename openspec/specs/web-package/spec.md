@@ -1,8 +1,11 @@
 # web-package Specification
 
 ## Purpose
+
 TBD - created by archiving change agent-first-monorepo. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Dedicated Web Package
 
 The web UI SHALL live in `packages/web` as a dedicated Vite workspace package.
@@ -33,4 +36,3 @@ The GitHub Pages workflow SHALL build and deploy the web package output from the
 - **THEN** the Pages workflow installs with pnpm
 - **THEN** it builds `packages/web`
 - **THEN** it uploads the web package output directory
-

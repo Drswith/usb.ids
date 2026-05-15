@@ -1,8 +1,11 @@
 # agent-governance Specification
 
 ## Purpose
+
 TBD - created by archiving change agent-first-monorepo. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Agent Entry Guidance
 
 The repository SHALL provide root-level agent guidance that states the product priority, active migration target, required workflow, shared agent asset location, validation commands, and CLI-first standards.
@@ -46,4 +49,3 @@ The repository SHALL provide common GitHub issue templates and a pull request te
 
 - **WHEN** a contributor opens a pull request
 - **THEN** the template asks for summary, linked issues, OpenSpec change, validation, CLI impact, SDK impact, web impact, and release impact
-

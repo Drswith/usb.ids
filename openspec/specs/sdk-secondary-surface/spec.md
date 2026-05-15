@@ -1,8 +1,11 @@
 # sdk-secondary-surface Specification
 
 ## Purpose
+
 TBD - created by archiving change agent-first-monorepo. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Secondary SDK Package
 
 The Node/browser SDK SHALL live in `packages/sdk` and be documented as a secondary programmatic interface behind the CLI.
@@ -39,4 +42,3 @@ The SDK SHALL publish TypeScript types for parser output, query helpers, data lo
 
 - **WHEN** a TypeScript project imports `@usb-ids/sdk`
 - **THEN** the package resolves public type declarations without importing from internal workspace paths
-

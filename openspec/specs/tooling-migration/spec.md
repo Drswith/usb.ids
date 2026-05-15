@@ -1,8 +1,11 @@
 # tooling-migration Specification
 
 ## Purpose
+
 TBD - created by archiving change agent-first-monorepo. Update Purpose after archive.
+
 ## Requirements
+
 ### Requirement: Oxc Lint And Format Toolchain
 
 The repository SHALL migrate from the current ESLint + Antfu/formatting toolchain to oxlint and oxfmt.
@@ -38,4 +41,3 @@ The migration SHALL update package scripts, lint-staged or hook configuration, C
 - **WHEN** CI runs repository verification after the migration
 - **THEN** lint and format checks use oxlint and oxfmt commands
 - **THEN** stale ESLint/Antfu/format-plugin dependencies are removed from package manifests
-
