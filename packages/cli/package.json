@@ -52,6 +52,7 @@
     "sirv": "^2.0.4"
   },
   "devDependencies": {
+    "@usb-ids/sdk": "workspace:*",
     "execa": "^9.6.0"
   },
   "engines": {

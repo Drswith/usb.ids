@@ -1,1 +1,1 @@
-export * from "../../sdk/src/browser";
+export * from "@usb-ids/sdk/browser";

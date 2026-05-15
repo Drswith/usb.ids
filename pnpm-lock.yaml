@@ -48,6 +48,9 @@ importers:
         specifier: ^2.0.4
         version: 2.0.4
     devDependencies:
+      '@usb-ids/sdk':
+        specifier: workspace:*
+        version: link:../sdk
       execa:
         specifier: ^9.6.0
         version: 9.6.1

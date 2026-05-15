@@ -1,1 +1,1 @@
-export * from "../../sdk/src/index";
+export * from "@usb-ids/sdk";
