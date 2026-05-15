@@ -1,19 +1,19 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    setupFiles: ['tests/setup.ts'],
+    setupFiles: ["tests/setup.ts"],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json-summary'],
-      include: ['src/**/*.ts'],
+      provider: "v8",
+      reporter: ["text", "json-summary"],
+      include: ["src/**/*.ts"],
       exclude: [
-        'src/cli.ts',
-        'src/types.ts',
-        'src/index.ts',
-        'src/core.ts',
-        'src/node/data.ts',
-        'src/utils.ts',
+        "src/cli.ts",
+        "src/types.ts",
+        "src/index.ts",
+        "src/core.ts",
+        "src/node/data.ts",
+        "src/utils.ts",
       ],
       thresholds: {
         lines: 80,
@@ -26,23 +26,20 @@ export default defineConfig({
       {
         extends: true,
         test: {
-          include: ['tests/**/*.browser.test.{ts,js}'],
-          name: 'happy-dom',
-          environment: 'happy-dom',
+          include: ["tests/**/*.browser.test.{ts,js}"],
+          name: "happy-dom",
+          environment: "happy-dom",
         },
       },
       {
         extends: true,
         test: {
-          include: ['tests/**/*.test.{ts,js}'],
-          exclude: [
-            'tests/**/*.browser.test.{ts,js}',
-            'tests/**/*.bench.{ts,js}',
-          ],
-          name: { label: 'node', color: 'green' },
-          environment: 'node',
+          include: ["tests/**/*.test.{ts,js}"],
+          exclude: ["tests/**/*.browser.test.{ts,js}", "tests/**/*.bench.{ts,js}"],
+          name: { label: "node", color: "green" },
+          environment: "node",
         },
       },
     ],
   },
-})
+});

@@ -57,15 +57,15 @@ import {
   searchDevices,
   searchInData,
   updateUsbData,
-} from 'usb.ids'
+} from "usb.ids";
 
 // Local data only (no network)
-const data = await loadUsbData()
-const vendors = await getVendors()
-const vendor = await getVendor('05ac') // 4-digit hex: exact vendor id
+const data = await loadUsbData();
+const vendors = await getVendors();
+const vendor = await getVendor("05ac"); // 4-digit hex: exact vendor id
 
 // Explicit refresh (download + write files)
-await updateUsbData({ force: true })
+await updateUsbData({ force: true });
 ```
 
 - String vendor/device filters: **four hex digits** are treated as **exact** ids; other strings use substring search on names/ids.
@@ -74,27 +74,23 @@ await updateUsbData({ force: true })
 ## Browser
 
 ```ts
-import {
-  filterVendors,
-  loadUsbDataFromUrl,
-  searchInData,
-} from 'usb.ids/browser'
+import { filterVendors, loadUsbDataFromUrl, searchInData } from "usb.ids/browser";
 
-const data = await loadUsbDataFromUrl('https://unpkg.com/usb.ids@latest/usb.ids.json')
+const data = await loadUsbDataFromUrl("https://unpkg.com/usb.ids@latest/usb.ids.json");
 ```
 
 Use your own CDN URL; v2 JSON is normalized to v1-shaped vendor maps in Node APIs, but browser `loadUsbDataFromUrl` returns parsed JSON as-is—pass through `toV1` from the main export if you bundle the full package on the server only, or consume v2 directly.
 
 ## Conditional exports
 
-| Subpath | Purpose |
-|--------|---------|
-| `usb.ids` | Node-oriented API (resolves to `dist/index.js`) / types |
-| `usb.ids/browser` | Browser-safe bundle |
-| `usb.ids/data/min` | `dist/data/usb.ids.min.json` (after `pnpm run build`) |
-| `usb.ids/data/compact` | Compact array encoding |
-| `usb.ids/data/vendors-index` | Vendor index for lazy loading |
-| `usb.ids/data/version` | Manifest with optional `artifacts` sizes |
+| Subpath                      | Purpose                                                 |
+| ---------------------------- | ------------------------------------------------------- |
+| `usb.ids`                    | Node-oriented API (resolves to `dist/index.js`) / types |
+| `usb.ids/browser`            | Browser-safe bundle                                     |
+| `usb.ids/data/min`           | `dist/data/usb.ids.min.json` (after `pnpm run build`)   |
+| `usb.ids/data/compact`       | Compact array encoding                                  |
+| `usb.ids/data/vendors-index` | Vendor index for lazy loading                           |
+| `usb.ids/data/version`       | Manifest with optional `artifacts` sizes                |
 
 Root-published files: `usb.ids`, `usb.ids.json`, `usb.ids.version.json`, `dist/` (see `package.json` `files`).
 

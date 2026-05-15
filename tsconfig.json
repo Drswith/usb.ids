@@ -21,18 +21,6 @@
     "erasableSyntaxOnly": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": [
-    "vitest.config.ts",
-    "tsdown.config.ts",
-    "src/**/*.ts",
-    "app/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts",
-    "**/*.test.ts",
-    "tests/setup.ts",
-    "dist",
-    "examples"
-  ]
+  "include": ["vitest.config.ts", "tsdown.config.ts", "src/**/*.ts", "app/**/*.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts", "tests/setup.ts", "dist", "examples"]
 }

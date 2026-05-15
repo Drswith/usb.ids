@@ -5,4 +5,4 @@ export {
   saveRawUsbIdsFile,
   saveUsbIdsToFile,
   saveVersionInfo,
-} from './service/usb-ids-data'
+} from "./service/usb-ids-data";
