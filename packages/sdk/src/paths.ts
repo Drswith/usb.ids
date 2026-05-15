@@ -12,7 +12,7 @@ export function getPackageRoot(): string {
     try {
       if (fs.existsSync(pkgPath)) {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as { name?: string };
-        if (pkg.name === "usb.ids") {
+        if (pkg.name === "@usb-ids/sdk") {
           return dir;
         }
       }

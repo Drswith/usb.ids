@@ -1,14 +1,14 @@
-import type { UsbDatasetV2, UsbIdsData, VersionInfo } from "../src/types";
+import type { UsbDatasetV2, UsbIdsData, VersionInfo } from "@usb-ids/sdk/browser";
 import type { DeviceResult } from "./search";
 import type { ThemeMode } from "./theme";
-import { isDatasetV2, toV1 } from "../src/legacy/to-v1";
-import { normalizeVersionInfoForUi } from "../src/manifest-ui";
+import { isDatasetV2, toV1 } from "@usb-ids/sdk/browser";
 import { loadUsbIdsJson, loadVersionJson } from "./data-source";
 import { createDeviceCardElement } from "./render/device-card";
 import { searchUsbData } from "./search";
 import { initTheme, toggleTheme } from "./theme";
 import { getUrlParams, updateUrlParams } from "./url-router";
 import { debounce } from "./utils";
+import { normalizeVersionInfoForUi } from "./version-info";
 import "./styles.css";
 
 if (import.meta.env?.DEV) document.title = `[DEV] ${document.title}`;

@@ -1,4 +1,6 @@
-import { UI_LOCAL_BASE_URL, USB_IDS_JSON_FILE, USB_IDS_VERSION_JSON_FILE } from "../src/config";
+const UI_LOCAL_BASE_URL = "/__usb_ids__/";
+const USB_IDS_JSON_FILE = "usb.ids.json";
+const USB_IDS_VERSION_JSON_FILE = "usb.ids.version.json";
 
 const PKG_VERSION =
   typeof import.meta.env.VERSION === "string" ? import.meta.env.VERSION : "latest";

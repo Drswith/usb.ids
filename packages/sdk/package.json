@@ -5,6 +5,12 @@
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
+  "scripts": {
+    "lint": "pnpm -C ../.. exec oxlint src tests",
+    "typecheck": "pnpm -C ../.. exec tsc --noEmit -p tsconfig.json",
+    "test": "pnpm -C ../.. exec vitest run --config vitest.config.ts",
+    "build": "pnpm -C ../.. exec tsdown --config tsdown.config.ts --env.NODE_ENV=production"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
