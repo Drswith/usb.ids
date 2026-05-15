@@ -108,29 +108,36 @@ jobs:
         with:
           name: usb-ids-build-${{ github.run_number }}
           path: |
-            dist/
-            usb.ids
-            usb.ids.json
-            usb.ids.version.json
+            packages/cli/dist/
+            packages/cli/usb.ids
+            packages/cli/usb.ids.json
+            packages/cli/usb.ids.version.json
           retention-days: 30
 
-      - name: Update package.json version and README
+      - name: Update package versions for publish
         if: steps.plan.outputs.run_publish == 'true'
         run: |
-          NEW_VERSION=$(node -p "const v=require('./usb.ids.version.json'); String(v.releaseVersion || v.version).replace(/^v/, '')")
+          NEW_VERSION=$(node -p "const v=require('./packages/cli/usb.ids.version.json'); String(v.releaseVersion || v.version).replace(/^v/, '')")
           echo "New version: $NEW_VERSION"
 
           node -e "
             const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            pkg.version = '$NEW_VERSION';
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            const targets = [
+              './packages/cli/package.json',
+              './packages/sdk/package.json'
+            ];
+            for (const file of targets) {
+              if (!fs.existsSync(file)) continue;
+              const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
+              pkg.version = '$NEW_VERSION';
+              fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
+            }
           "
 
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          git add package.json usb.ids usb.ids.json usb.ids.version.json
+          git add packages/cli/package.json packages/sdk/package.json packages/cli/usb.ids packages/cli/usb.ids.json packages/cli/usb.ids.version.json
           git commit -m "chore: update to version $NEW_VERSION
 
           - Automated data and CalVer bump"
@@ -138,7 +145,7 @@ jobs:
       - name: Create and push tag
         if: steps.plan.outputs.run_publish == 'true'
         run: |
-          TAG_VERSION=$(node -p "const v=require('./usb.ids.version.json'); String(v.releaseVersion || v.version).replace(/^v/, '')")
+          TAG_VERSION=$(node -p "const v=require('./packages/cli/usb.ids.version.json'); String(v.releaseVersion || v.version).replace(/^v/, '')")
           echo "Creating tag: v$TAG_VERSION"
           git tag -a "v$TAG_VERSION" -m "Release v$TAG_VERSION"
           git push origin main
@@ -150,9 +157,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to npm (trusted publishing via OIDC)
+      - name: Publish CLI package to npm (trusted publishing via OIDC)
         if: steps.plan.outputs.run_publish == 'true'
-        run: npm publish --provenance
+        run: pnpm --filter "./packages/cli" publish --access public --provenance --no-git-checks
+
+      - name: Publish SDK package to npm (optional)
+        if: steps.plan.outputs.run_publish == 'true'
+        run: pnpm --filter "./packages/sdk" publish --access public --provenance --no-git-checks
 
   notify-failure:
     runs-on: ubuntu-latest
