@@ -19,7 +19,7 @@ flowchart LR
 - Parser + schema transforms (`src/parser`, `src/legacy`)
 - Query helpers (`src/pure/query`)
 - Repository/service orchestration (`src/repository`, `src/service`)
-- Node/browser API surface and public types
+- Internal Node/browser API source and shared types (not independently published)
 
 ### `packages/cli`
 
@@ -31,7 +31,7 @@ flowchart LR
 ### `packages/web`
 
 - Vite search UI (`app/*`)
-- Uses SDK browser/query contracts via `@usb-ids/sdk/browser`
+- Uses shared browser/query contracts from workspace SDK modules
 - Built and deployed separately to Pages
 
 ## Data Versioning

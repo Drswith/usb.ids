@@ -1,6 +1,6 @@
 # API Overview
 
-This repository is CLI-first. Programmatic usage is secondary and published from `@usb-ids/sdk`.
+This repository is CLI-first. Programmatic usage is secondary and exposed from `usb.ids`.
 
 ## CLI (`usb-ids`)
 
@@ -23,18 +23,18 @@ Exit codes are stable:
 
 `version --json` and `check --json` return JSON via stdout for agents.
 
-## SDK (`@usb-ids/sdk`)
+## SDK (`usb.ids`)
 
 Core exports include:
 
 - Node data loading/update: `loadUsbData`, `loadUsbDataSync`, `updateUsbData`
 - Query helpers: `filterVendors`, `filterDevices`, `searchInData`
 - Higher-level async helpers: `getVendors`, `getVendor`, `getDevices`, `getDevice`, `getUsbData`, `searchDevices`
-- Browser entry: `@usb-ids/sdk/browser`
+- Browser entry: `usb.ids/browser`
 - Types: `UsbIdsData`, `UsbDatasetV2`, `VersionInfo`, etc.
 - Compatibility helpers: `isDatasetV2`, `toV1`
 
 ## Compatibility Note
 
-`usb.ids` (CLI package) currently provides a compatibility export that re-exports SDK APIs.  
-New SDK consumers should migrate to `@usb-ids/sdk` directly.
+Single publish package policy: only `usb.ids` is published.  
+`packages/sdk` stays internal as implementation source.
