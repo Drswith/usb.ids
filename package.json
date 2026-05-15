@@ -69,7 +69,12 @@
     "prepare": "simple-git-hooks",
     "tag": "bumpp",
     "lint-staged": "lint-staged",
-    "diff-hash": "tsx scripts/diff-hash.ts"
+    "diff-hash": "tsx scripts/diff-hash.ts",
+    "openspec": "pnpm dlx @fission-ai/openspec",
+    "openspec:list": "pnpm dlx @fission-ai/openspec list",
+    "openspec:status": "pnpm dlx @fission-ai/openspec status",
+    "openspec:instructions": "pnpm dlx @fission-ai/openspec instructions",
+    "openspec:validate": "pnpm dlx @fission-ai/openspec validate --all"
   },
   "dependencies": {
     "sirv": "^3.0.2"
