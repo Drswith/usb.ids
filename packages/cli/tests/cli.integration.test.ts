@@ -76,7 +76,7 @@ describe("usb-ids cli integration (dist/cli.js)", () => {
     expect(fs.existsSync(cliDist)).toBe(true);
     const result = await runCli(["help"]);
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("usb-ids <command> [options]");
+    expect(result.stdout).toContain("Usage: usb-ids");
     expect(result.stderr).toBe("");
   });
 

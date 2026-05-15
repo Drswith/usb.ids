@@ -12,7 +12,7 @@ pnpm run openspec:validate
 
 ## Active Change
 
-- `agent-first-monorepo`: refactor the project into a pnpm monorepo with CLI-first package ownership, secondary SDK APIs, a dedicated web package, agent guidance, and GitHub templates.
+- `standardize-cli-runtime`: replace custom CLI routing with `commander` + common CLI tooling while preserving command contracts and exit-code stability.
 
 ## Agent Assets
 

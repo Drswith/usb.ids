@@ -1,0 +1,8 @@
+- [x] 1. Create OpenSpec change artifacts for CLI runtime standardization.
+- [x] 2. Add `commander`, `picocolors`, and `prompts` to `packages/cli` runtime dependencies.
+- [x] 3. Refactor `packages/cli/src/cli.ts` from custom switch parser to Commander command graph.
+- [x] 4. Preserve existing exit-code and JSON output contract through handler mapping.
+- [x] 5. Add opt-in interactive confirmation for `fetch --force --interactive` with `--yes` bypass.
+- [x] 6. Update CLI integration expectations for framework-rendered help output.
+- [x] 7. Run and pass `pnpm run openspec:validate`.
+- [x] 8. Run and pass `pnpm run lint`, `pnpm run typecheck`, `pnpm run test`.

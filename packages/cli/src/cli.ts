@@ -3,6 +3,9 @@ import * as fs from "node:fs";
 import { createServer } from "node:http";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { Command, CommanderError } from "commander";
+import pc from "picocolors";
+import prompts from "prompts";
 import sirv from "sirv";
 import { config, fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile } from "@usb-ids/sdk";
 
@@ -14,6 +17,19 @@ const EXIT_CODES = {
   PARSE: 5,
   FILESYSTEM: 6,
 } as const;
+
+type ExitCode = (typeof EXIT_CODES)[keyof typeof EXIT_CODES];
+
+type FetchCommandOptions = {
+  force?: boolean;
+  offline?: boolean;
+  yes?: boolean;
+  interactive?: boolean;
+};
+
+type UiCommandOptions = {
+  port?: string;
+};
 
 function stdout(message: string): void {
   process.stdout.write(`${message}\n`);
@@ -27,7 +43,23 @@ function jsonStdout(value: unknown): void {
   process.stdout.write(`${JSON.stringify(value)}\n`);
 }
 
-function classifyError(error: unknown): number {
+function info(message: string): void {
+  stdout(pc.cyan(message));
+}
+
+function success(message: string): void {
+  stdout(pc.green(message));
+}
+
+function warn(message: string): void {
+  stderr(pc.yellow(message));
+}
+
+function errorOut(message: string): void {
+  stderr(pc.red(message));
+}
+
+function classifyError(error: unknown): ExitCode {
   const msg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
   if (
     msg.includes("unable to fetch") ||
@@ -71,11 +103,38 @@ function resolveUiDistDir(): string {
   return path.resolve(fromDistSibling);
 }
 
-async function updateUsbIdsData(
-  options: { forceUpdate?: boolean; offline?: boolean } = {},
-): Promise<number> {
+function parsePortOrDefault(input: string | undefined): number {
+  if (!input) return 3000;
+  const parsed = Number.parseInt(input, 10);
+  if (!Number.isNaN(parsed) && parsed > 0 && parsed < 65536) return parsed;
+  warn("Invalid port number, using default port 3000");
+  return 3000;
+}
+
+async function shouldContinueForceFetch(options: FetchCommandOptions): Promise<boolean> {
+  if (!options.force) return true;
+  if (options.yes) return true;
+  if (!options.interactive) return true;
+  if (!process.stdin.isTTY || !process.stdout.isTTY) return true;
+
+  const response = await prompts({
+    type: "confirm",
+    name: "confirmed",
+    message: "Force refresh from network and overwrite local artifacts?",
+    initial: false,
+  });
+  return Boolean(response.confirmed);
+}
+
+async function updateUsbIdsData(options: FetchCommandOptions = {}): Promise<ExitCode> {
   try {
-    const forceUpdate = options.forceUpdate ?? false;
+    const canProceed = await shouldContinueForceFetch(options);
+    if (!canProceed) {
+      warn("Operation cancelled");
+      return EXIT_CODES.USAGE;
+    }
+
+    const forceUpdate = options.force ?? false;
     const offline = options.offline ?? false;
     const root = process.cwd();
     const fallbackFile = config.USB_IDS_JSON_FILE;
@@ -88,24 +147,23 @@ async function updateUsbIdsData(
       root,
       forceUpdate,
     );
-
     await saveUsbIdsToFile(data, jsonFile);
 
-    stdout("Data update completed");
-    stdout(`Data source: ${source === "api" ? "Remote API" : "Local fallback file"}`);
-    stdout(`Vendor count: ${versionInfo.vendorCount}`);
-    stdout(`Device count: ${versionInfo.deviceCount}`);
-    stdout(`Release: ${versionInfo.releaseVersion}`);
-    stdout(`Upstream database: ${versionInfo.upstreamVersion}`);
-    stdout(`Build time: ${versionInfo.buildTimeFormatted}`);
+    success("Data update completed");
+    info(`Data source: ${source === "api" ? "Remote API" : "Local fallback file"}`);
+    info(`Vendor count: ${versionInfo.vendorCount}`);
+    info(`Device count: ${versionInfo.deviceCount}`);
+    info(`Release: ${versionInfo.releaseVersion}`);
+    info(`Upstream database: ${versionInfo.upstreamVersion}`);
+    info(`Build time: ${versionInfo.buildTimeFormatted}`);
     return EXIT_CODES.SUCCESS;
   } catch (error) {
-    stderr(`Update failed: ${error instanceof Error ? error.message : String(error)}`);
+    errorOut(`Update failed: ${error instanceof Error ? error.message : String(error)}`);
     return classifyError(error);
   }
 }
 
-function showVersionInfo(asJson: boolean): number {
+function showVersionInfo(asJson: boolean): ExitCode {
   try {
     const root = process.cwd();
     const versionFile = path.join(root, config.USB_IDS_VERSION_JSON_FILE);
@@ -113,7 +171,7 @@ function showVersionInfo(asJson: boolean): number {
     if (!fs.existsSync(versionFile)) {
       const message = "Version info file does not exist, please run `usb-ids fetch` first";
       if (asJson) jsonStdout({ ok: false, code: "DATA_MISSING", message });
-      else stderr(message);
+      else errorOut(message);
       return EXIT_CODES.DATA_MISSING;
     }
 
@@ -121,31 +179,31 @@ function showVersionInfo(asJson: boolean): number {
     if (!versionInfo) {
       const message = "Unable to read version information";
       if (asJson) jsonStdout({ ok: false, code: "PARSE_ERROR", message });
-      else stderr(message);
+      else errorOut(message);
       return EXIT_CODES.PARSE;
     }
 
     if (asJson) {
       jsonStdout({ ok: true, version: versionInfo });
     } else {
-      stdout("Current version information:");
-      stdout(`  Release: ${versionInfo.releaseVersion}`);
-      stdout(`  Upstream database: ${versionInfo.upstreamVersion}`);
-      stdout(`  Vendor count: ${versionInfo.vendorCount}`);
-      stdout(`  Device count: ${versionInfo.deviceCount}`);
-      stdout(`  Build time: ${versionInfo.buildTimeFormatted}`);
-      stdout(`  Upstream hash: ${versionInfo.upstreamHash}`);
+      info("Current version information:");
+      info(`  Release: ${versionInfo.releaseVersion}`);
+      info(`  Upstream database: ${versionInfo.upstreamVersion}`);
+      info(`  Vendor count: ${versionInfo.vendorCount}`);
+      info(`  Device count: ${versionInfo.deviceCount}`);
+      info(`  Build time: ${versionInfo.buildTimeFormatted}`);
+      info(`  Upstream hash: ${versionInfo.upstreamHash}`);
     }
     return EXIT_CODES.SUCCESS;
   } catch (error) {
     const message = `Failed to get version information: ${error instanceof Error ? error.message : String(error)}`;
     if (asJson) jsonStdout({ ok: false, code: "FILESYSTEM_ERROR", message });
-    else stderr(message);
+    else errorOut(message);
     return EXIT_CODES.FILESYSTEM;
   }
 }
 
-function checkUpdate(asJson: boolean): number {
+function checkUpdate(asJson: boolean): ExitCode {
   try {
     const root = process.cwd();
     const versionFile = path.join(root, config.USB_IDS_VERSION_JSON_FILE);
@@ -154,9 +212,10 @@ function checkUpdate(asJson: boolean): number {
     if (!versionInfo) {
       const message = "Version manifest missing — run `usb-ids fetch` first";
       if (asJson) jsonStdout({ ok: false, code: "DATA_MISSING", message });
-      else stderr(message);
+      else errorOut(message);
       return EXIT_CODES.DATA_MISSING;
     }
+
     const payload = {
       ok: true,
       status: "manifest_present",
@@ -166,31 +225,28 @@ function checkUpdate(asJson: boolean): number {
     if (asJson) {
       jsonStdout(payload);
     } else {
-      stdout("Local manifest (run fetch to refresh from network)");
-      stdout(`Upstream database: ${versionInfo.upstreamVersion}`);
-      stdout(`Release: ${versionInfo.releaseVersion}`);
-      stdout(`Build time: ${versionInfo.buildTimeFormatted}`);
+      info("Local manifest (run fetch to refresh from network)");
+      info(`Upstream database: ${versionInfo.upstreamVersion}`);
+      info(`Release: ${versionInfo.releaseVersion}`);
+      info(`Build time: ${versionInfo.buildTimeFormatted}`);
     }
     return EXIT_CODES.SUCCESS;
   } catch (error) {
     const message = `Check update failed: ${error instanceof Error ? error.message : String(error)}`;
     if (asJson) jsonStdout({ ok: false, code: "FILESYSTEM_ERROR", message });
-    else stderr(message);
+    else errorOut(message);
     return EXIT_CODES.FILESYSTEM;
   }
 }
 
-/**
- * 启动静态web服务器
- */
-async function startWebServer(port = 3000): Promise<number> {
+async function startWebServer(port = 3000): Promise<ExitCode> {
   try {
     const distDir = resolveUiDistDir();
     const pkgRoot = path.resolve(getCliPackageRoot());
     const distDirResolved = path.resolve(distDir);
 
     if (!fs.existsSync(distDirResolved)) {
-      stderr(
+      errorOut(
         "dist/ui directory does not exist, please run build command first: pnpm run build:app",
       );
       return EXIT_CODES.FILESYSTEM;
@@ -202,7 +258,7 @@ async function startWebServer(port = 3000): Promise<number> {
     }
 
     function logResp(statusCode: number, start: number): void {
-      stdout(`HTTP Returned ${statusCode} in ${Date.now() - start} ms`);
+      stdout(pc.dim(`HTTP Returned ${statusCode} in ${Date.now() - start} ms`));
     }
 
     const prod = process.env.NODE_ENV === "production";
@@ -217,7 +273,7 @@ async function startWebServer(port = 3000): Promise<number> {
     const server = createServer((req, res) => {
       const startTime = Date.now();
       const rawUrl = req.url ?? "/";
-      stdout(`HTTP ${req.method} ${rawUrl}`);
+      stdout(pc.dim(`HTTP ${req.method} ${rawUrl}`));
 
       let urlPath: string;
       try {
@@ -301,124 +357,135 @@ async function startWebServer(port = 3000): Promise<number> {
     });
 
     server.listen(port, () => {
-      stdout("usb.ids Web UI server started");
-      stdout(`Access URL: http://localhost:${port}${config.UI_LOCAL_BASE_URL}`);
-      stdout("Press Control+C to stop the server");
+      success("usb.ids Web UI server started");
+      info(`Access URL: http://localhost:${port}${config.UI_LOCAL_BASE_URL}`);
+      info("Press Control+C to stop the server");
     });
 
-    return new Promise<void>((resolve, reject) => {
+    return await new Promise<ExitCode>((resolve, reject) => {
       server.on("error", (error) => {
-        stderr(`Server error: ${error.message}`);
+        errorOut(`Server error: ${error.message}`);
         reject(error);
       });
       server.on("close", () => {
-        stdout("Server stopped");
-        resolve();
+        info("Server stopped");
+        resolve(EXIT_CODES.SUCCESS);
       });
-    }).then(() => EXIT_CODES.SUCCESS);
+    });
   } catch (error) {
-    stderr(`Failed to start web server: ${error instanceof Error ? error.message : String(error)}`);
+    errorOut(
+      `Failed to start web server: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return EXIT_CODES.FILESYSTEM;
   }
 }
 
-/**
- * 显示帮助信息
- */
-function showHelp(): void {
-  stdout(`
-USB Device Data Management Tool
-
-Usage:
-  usb-ids <command> [options]
-  or: node bin/cli.js <command> [options]
-
-Commands:
-  update, fetch    Update USB ID's data
-  version, info    Show current version information
-  check           Check if update is needed
-  ui              Start web interface server
-  help            Show this help information
-
-Options:
-  --force         Force update (ignore time check)
-  --offline       Skip network fetch and only use local fallback data
-  --json          Output machine-readable JSON (version/check)
-  --port <port>   Specify web server port (default 3000)
-
-Examples:
-  usb-ids update
-  usb-ids update --force
-  usb-ids version
-  usb-ids check
-  usb-ids ui
-  usb-ids ui --port 8080
-`);
+function cleanCommanderMessage(message: string): string {
+  return message.replace(/^error:\s*/i, "");
 }
 
-/**
- * CLI主函数 - 处理命令行参数
- */
-async function runCli(): Promise<void> {
-  const args = process.argv.slice(2);
-  const command = args[0];
-  const asJson = args.includes("--json");
-  let exitCode: number = EXIT_CODES.SUCCESS;
+function unknownCommandFromArgv(argv: string[]): string {
+  const first = argv.find((arg) => !arg.startsWith("-"));
+  return first ?? "unknown";
+}
 
-  switch (command) {
-    case "update":
-    case "fetch":
-      exitCode = await updateUsbIdsData({
-        forceUpdate: args.includes("--force"),
-        offline: args.includes("--offline"),
-      });
-      break;
+function buildProgram(setExitCode: (code: ExitCode) => void): Command {
+  const program = new Command();
+  program
+    .name("usb-ids")
+    .description("USB Device Data Management Tool")
+    .showSuggestionAfterError()
+    .showHelpAfterError("Use --help to see available commands")
+    .helpCommand(false)
+    .exitOverride();
 
-    case "version":
-    case "info":
-      exitCode = showVersionInfo(asJson);
-      break;
+  program.configureOutput({
+    outputError: (str, write) => write(pc.red(str)),
+  });
 
-    case "check":
-      exitCode = checkUpdate(asJson);
-      break;
+  program
+    .command("fetch")
+    .alias("update")
+    .description("Update USB IDs data")
+    .option("--force", "Force update (ignore cache/time checks)")
+    .option("--offline", "Skip network fetch and only use local fallback data")
+    .option("-y, --yes", "Skip interactive confirmation prompts")
+    .option("--interactive", "Enable interactive prompts for confirmation")
+    .action(async (options: FetchCommandOptions) => {
+      setExitCode(await updateUsbIdsData(options));
+    });
 
-    case "ui": {
-      // 解析端口参数
-      const portIndex = args.indexOf("--port");
-      let port = 3000;
-      if (portIndex !== -1 && args[portIndex + 1]) {
-        const parsedPort = Number.parseInt(args[portIndex + 1], 10);
-        if (!Number.isNaN(parsedPort) && parsedPort > 0 && parsedPort < 65536) {
-          port = parsedPort;
-        } else {
-          stderr("Invalid port number, using default port 3000");
-        }
+  program
+    .command("version")
+    .alias("info")
+    .description("Show current version information")
+    .option("--json", "Output machine-readable JSON")
+    .action((options: { json?: boolean }) => {
+      setExitCode(showVersionInfo(Boolean(options.json)));
+    });
+
+  program
+    .command("check")
+    .description("Check local update manifest state")
+    .option("--json", "Output machine-readable JSON")
+    .action((options: { json?: boolean }) => {
+      setExitCode(checkUpdate(Boolean(options.json)));
+    });
+
+  program
+    .command("ui")
+    .description("Start web interface server")
+    .option("--port <port>", "Specify web server port (default 3000)")
+    .action(async (options: UiCommandOptions) => {
+      setExitCode(await startWebServer(parsePortOrDefault(options.port)));
+    });
+
+  program
+    .command("help")
+    .description("Show this help information")
+    .action(() => {
+      program.outputHelp();
+      setExitCode(EXIT_CODES.SUCCESS);
+    });
+
+  return program;
+}
+
+async function runCli(argv = process.argv.slice(2)): Promise<ExitCode> {
+  if (argv.length === 0) {
+    return updateUsbIdsData();
+  }
+
+  let exitCode: ExitCode = EXIT_CODES.SUCCESS;
+  const program = buildProgram((next) => {
+    exitCode = next;
+  });
+
+  try {
+    await program.parseAsync(argv, { from: "user" });
+    return exitCode;
+  } catch (error) {
+    if (error instanceof CommanderError) {
+      if (error.code === "commander.helpDisplayed") return EXIT_CODES.SUCCESS;
+      if (error.code === "commander.unknownCommand") {
+        errorOut(`Unknown command: ${unknownCommandFromArgv(argv)}`);
+        stderr("Use --help to see available commands");
+        return EXIT_CODES.USAGE;
       }
-      exitCode = await startWebServer(port);
-      break;
+      errorOut(cleanCommanderMessage(error.message));
+      return EXIT_CODES.USAGE;
     }
 
-    case "help":
-    case "--help":
-    case "-h":
-      showHelp();
-      break;
-
-    default:
-      if (!command) {
-        exitCode = await updateUsbIdsData();
-      } else {
-        stderr(`Unknown command: ${command}`);
-        stderr("Use --help to see available commands");
-        exitCode = EXIT_CODES.USAGE;
-      }
-      break;
+    errorOut(`CLI execution failed: ${error instanceof Error ? error.message : String(error)}`);
+    return classifyError(error);
   }
-  process.exitCode = exitCode;
 }
 
-runCli().catch((error) => {
-  stderr(`CLI execution failed: ${error instanceof Error ? error.message : String(error)}`);
-  process.exitCode = classifyError(error);
-});
+runCli()
+  .then((exitCode) => {
+    process.exitCode = exitCode;
+  })
+  .catch((error) => {
+    errorOut(`CLI execution failed: ${error instanceof Error ? error.message : String(error)}`);
+    process.exitCode = classifyError(error);
+  });
