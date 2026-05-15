@@ -153,7 +153,10 @@ describe("usb-ids cli integration (dist/cli.js)", () => {
     fs.symlinkSync(pkgRoot, linkPath, "dir");
     const result = await execa(
       "node",
-      ["-e", 'const m=require("usb.ids"); console.log(typeof m.parseUsbIds === "function" ? "ok" : "bad");'],
+      [
+        "-e",
+        'const m=require("usb.ids"); console.log(typeof m.parseUsbIds === "function" ? "ok" : "bad");',
+      ],
       { cwd, reject: false },
     );
     expect(result.exitCode).toBe(0);
