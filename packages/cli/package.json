@@ -1,0 +1,19 @@
+{
+  "name": "usb.ids",
+  "type": "module",
+  "version": "1.0.1766044584391",
+  "description": "USB IDs CLI and data artifacts package.",
+  "license": "MIT",
+  "bin": {
+    "usb-ids": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "usb.ids",
+    "usb.ids.json",
+    "usb.ids.version.json"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}
