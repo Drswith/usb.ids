@@ -125,4 +125,57 @@ describe("usb-ids cli integration (dist/cli.js)", () => {
     expect(result.exitCode).toBe(6);
     expect(result.stderr).toContain("dist/ui directory does not exist");
   });
+
+  it("supports ESM import from usb.ids", async () => {
+    const cwd = mkTmpDir();
+    const nodeModules = path.join(cwd, "node_modules");
+    const linkPath = path.join(nodeModules, "usb.ids");
+    fs.mkdirSync(nodeModules, { recursive: true });
+    fs.symlinkSync(pkgRoot, linkPath, "dir");
+    const result = await execa(
+      "node",
+      [
+        "--input-type=module",
+        "-e",
+        'import { parseUsbIds } from "usb.ids"; const d=parseUsbIds("0001  V\\n\\t0001  P\\n"); console.log(d && typeof d === "object" ? "ok" : "bad");',
+      ],
+      { cwd, reject: false },
+    );
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("ok");
+  });
+
+  it("supports CJS require from usb.ids", async () => {
+    const cwd = mkTmpDir();
+    const nodeModules = path.join(cwd, "node_modules");
+    const linkPath = path.join(nodeModules, "usb.ids");
+    fs.mkdirSync(nodeModules, { recursive: true });
+    fs.symlinkSync(pkgRoot, linkPath, "dir");
+    const result = await execa(
+      "node",
+      ["-e", 'const m=require("usb.ids"); console.log(typeof m.parseUsbIds === "function" ? "ok" : "bad");'],
+      { cwd, reject: false },
+    );
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("ok");
+  });
+
+  it("supports browser and version subpath imports", async () => {
+    const cwd = mkTmpDir();
+    const nodeModules = path.join(cwd, "node_modules");
+    const linkPath = path.join(nodeModules, "usb.ids");
+    fs.mkdirSync(nodeModules, { recursive: true });
+    fs.symlinkSync(pkgRoot, linkPath, "dir");
+    const result = await execa(
+      "node",
+      [
+        "--input-type=module",
+        "-e",
+        'import { filterVendors } from "usb.ids/browser"; import { version } from "usb.ids/data/version"; const versionStr = typeof version.releaseVersion === "string" ? version.releaseVersion : version.version; const ok = typeof filterVendors === "function" && typeof versionStr === "string"; console.log(ok ? "ok" : "bad");',
+      ],
+      { cwd, reject: false },
+    );
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("ok");
+  });
 });

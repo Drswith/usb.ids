@@ -123,8 +123,7 @@ jobs:
           node -e "
             const fs = require('fs');
             const targets = [
-              './packages/cli/package.json',
-              './packages/sdk/package.json'
+              './packages/cli/package.json'
             ];
             for (const file of targets) {
               if (!fs.existsSync(file)) continue;
@@ -137,7 +136,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          git add packages/cli/package.json packages/sdk/package.json packages/cli/usb.ids packages/cli/usb.ids.json packages/cli/usb.ids.version.json
+          git add packages/cli/package.json packages/cli/usb.ids packages/cli/usb.ids.json packages/cli/usb.ids.version.json
           git commit -m "chore: update to version $NEW_VERSION
 
           - Automated data and CalVer bump"
@@ -160,10 +159,6 @@ jobs:
       - name: Publish CLI package to npm (trusted publishing via OIDC)
         if: steps.plan.outputs.run_publish == 'true'
         run: pnpm --filter "./packages/cli" publish --access public --provenance --no-git-checks
-
-      - name: Publish SDK package to npm (optional)
-        if: steps.plan.outputs.run_publish == 'true'
-        run: pnpm --filter "./packages/sdk" publish --access public --provenance --no-git-checks
 
   notify-failure:
     runs-on: ubuntu-latest

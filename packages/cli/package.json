@@ -13,28 +13,42 @@
     "usb.ids.version.json"
   ],
   "type": "module",
-  "main": "./dist/index.js",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "browser": "./dist/browser.js"
     },
+    "./browser": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/browser.js"
+    },
+    "./data/version": {
+      "import": "./dist/version.js",
+      "require": "./dist/version.cjs"
+    },
+    "./data/min": "./dist/data/usb.ids.min.json",
+    "./data/compact": "./dist/data/usb.ids.compact.json",
+    "./data/vendors-index": "./dist/data/vendors.index.json",
     "./package.json": "./package.json"
   },
   "scripts": {
     "lint": "oxlint src tests",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "pnpm --filter @usb-ids/sdk run build && pnpm run build && vitest run --config vitest.config.ts",
+    "test": "pnpm run build && vitest run --config vitest.config.ts",
     "build:lib": "tsdown --config tsdown.config.ts",
     "build:artifacts": "tsx scripts/build-artifacts.ts",
     "build": "pnpm run build:lib && pnpm run build:artifacts",
-    "fetch-usb-ids": "pnpm --filter @usb-ids/sdk run build && tsx src/cli.ts fetch",
+    "fetch-usb-ids": "tsx src/cli.ts fetch",
     "diff-hash": "tsx scripts/diff-hash.ts",
-    "dev:ui": "pnpm --filter @usb-ids/sdk run build && tsx src/cli.ts ui"
+    "dev:ui": "tsx src/cli.ts ui"
   },
   "dependencies": {
-    "@usb-ids/sdk": "workspace:*",
     "sirv": "^2.0.4"
   },
   "devDependencies": {
