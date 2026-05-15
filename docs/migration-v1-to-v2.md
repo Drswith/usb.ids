@@ -12,13 +12,12 @@ Node-facing functions such as `getVendors()` / `loadUsbData()` normalize v2 to v
 ## If you read the JSON file directly
 
 ```ts
-import type { UsbDatasetV2, UsbIdsData } from 'usb.ids'
-import { isDatasetV2, toV1 } from 'usb.ids'
+import type { UsbDatasetV2, UsbIdsData } from "usb.ids";
+import { isDatasetV2, toV1 } from "usb.ids";
 
 function normalize(raw: unknown): UsbIdsData {
-  if (isDatasetV2(raw))
-    return toV1(raw as UsbDatasetV2)
-  return raw as UsbIdsData
+  if (isDatasetV2(raw)) return toV1(raw as UsbDatasetV2);
+  return raw as UsbIdsData;
 }
 ```
 
@@ -34,13 +33,13 @@ USB class hierarchy, HID usage pages, languages, video terminals, etc., are **dr
 
 If you consume the published manifest next to `usb.ids.json`, note these renames (loaders may still accept the old keys):
 
-| Previous | Current |
-|----------|---------|
-| `version` | `releaseVersion` (npm package version / CalVer) |
-| `contentHash` | `upstreamHash` |
-| `fetchTime` | `buildTime` |
-| `fetchTimeFormatted` | `buildTimeFormatted` |
-| `source` | *(removed; not a publish-time concern)* |
+| Previous             | Current                                         |
+| -------------------- | ----------------------------------------------- |
+| `version`            | `releaseVersion` (npm package version / CalVer) |
+| `contentHash`        | `upstreamHash`                                  |
+| `fetchTime`          | `buildTime`                                     |
+| `fetchTimeFormatted` | `buildTimeFormatted`                            |
+| `source`             | _(removed; not a publish-time concern)_         |
 
 Added: `upstreamVersion` (`YYYY.MM.DD` from upstream `# Version`), optional `upstreamDate` (raw `# Date:` line). The CalVer middle segment `YYYYMMDD` matches `upstreamVersion` with dots removed.
 

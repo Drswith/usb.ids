@@ -1,6 +1,5 @@
 {
   "name": "usb.ids",
-  "type": "module",
   "version": "1.0.1766044584391",
   "description": "USB IDs CLI and data artifacts package.",
   "license": "MIT",
@@ -13,6 +12,7 @@
     "usb.ids.json",
     "usb.ids.version.json"
   ],
+  "type": "module",
   "engines": {
     "node": ">=18"
   }

@@ -1,10 +1,13 @@
 {
   "name": "@usb-ids/sdk",
-  "type": "module",
   "version": "1.0.1766044584391",
   "description": "Secondary Node/browser SDK for usb.ids.",
   "license": "MIT",
+  "type": "module",
   "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,9 +21,6 @@
     },
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "engines": {
     "node": ">=18"
   }

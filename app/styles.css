@@ -28,51 +28,56 @@
   --success-color: #10b981;
   --warning-color: #f59e0b;
   --error-color: #ef4444;
-  
+
   /* Dark theme backgrounds */
   --background-color: #0a0a0a;
   --background-secondary: #111111;
   --surface-color: #1a1a1a;
   --surface-elevated: #222222;
   --surface-hover: #2a2a2a;
-  
+
   /* Border colors */
   --border-color: #333333;
   --border-hover: #444444;
   --border-accent: rgba(0, 255, 136, 0.3);
-  
+
   /* Text colors */
   --text-primary: #ffffff;
   --text-secondary: #b3b3b3;
   --text-muted: #666666;
   --text-accent: var(--primary-color);
-  
+
   /* Shadows with glow effects */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
   --shadow-glow: 0 0 20px rgba(0, 255, 136, 0.3);
   --shadow-glow-strong: 0 0 30px rgba(0, 255, 136, 0.5);
-  
+
   /* Border radius */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
-  
+
   /* Transitions */
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: all 0.15s ease-out;
-  
+
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
-  --gradient-surface: linear-gradient(135deg, var(--surface-color) 0%, var(--surface-elevated) 100%);
+  --gradient-surface: linear-gradient(
+    135deg,
+    var(--surface-color) 0%,
+    var(--surface-elevated) 100%
+  );
   --gradient-border: linear-gradient(90deg, var(--primary-color), #06b6d4, var(--primary-hover));
 }
 
 /* Base styles */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: var(--background-color);
   color: var(--text-primary);
   line-height: 1.6;
@@ -117,14 +122,16 @@ body {
   border: 1px solid var(--border-color);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.15s ease, visibility 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease;
   z-index: 1000;
   margin-bottom: 0.25rem;
   pointer-events: none;
 }
 
 .tooltip::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 100%;
   left: 50%;
@@ -164,7 +171,6 @@ body {
   font-size: inherit;
   font-weight: inherit;
 }
-
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.8);
@@ -407,7 +413,8 @@ html {
 .version-value {
   color: var(--text-primary);
   font-weight: 600;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-family:
+    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
 }
 
 .version-value.countdown {
@@ -422,13 +429,23 @@ html {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 @keyframes urgentPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Responsive design */
@@ -518,11 +535,7 @@ html {
   .version-item {
     font-size: 0.8rem;
   }
-
-
 }
-
-
 
 /* Hide native search input clear button */
 .search-input-header::-webkit-search-cancel-button {
@@ -577,9 +590,6 @@ html {
   height: 1rem;
   stroke-width: 2;
 }
-
-
-
 
 /* Search results statistics styles */
 .search-stats {
@@ -652,8 +662,12 @@ html {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty state */
@@ -775,7 +789,7 @@ html {
 }
 
 .device-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -858,7 +872,7 @@ html {
 }
 
 .device-id {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
   font-size: 0.875rem;
   color: var(--primary-color);
   font-weight: 700;
@@ -873,7 +887,7 @@ html {
 }
 
 .vendor-id {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
   font-size: 0.8rem;
   color: var(--primary-color);
   font-weight: 600;
@@ -910,7 +924,7 @@ html {
 }
 
 .device-count::before {
-  content: '🔌';
+  content: "🔌";
   font-size: 0.875rem;
   filter: grayscale(0.3);
 }
@@ -944,7 +958,7 @@ html {
 }
 
 .view-devices-btn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -1065,7 +1079,7 @@ html {
 }
 
 .devices-list:empty::after {
-  content: 'No device information';
+  content: "No device information";
   display: block;
   text-align: center;
   color: var(--text-muted);
@@ -1074,14 +1088,14 @@ html {
 }
 
 .device-item::before {
-  content: '🔌';
+  content: "🔌";
   font-size: 1rem;
   margin-right: 0.25rem;
   opacity: 0.7;
 }
 
 .device-id {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
   font-size: 0.875rem;
   color: var(--primary-color);
   font-weight: 700;
@@ -1258,113 +1272,113 @@ html {
   .container {
     padding: 0 0.75rem;
   }
-  
+
   .header-content {
     grid-template-columns: 1fr;
     align-items: stretch;
     gap: 1rem;
   }
-  
+
   .header-right {
     flex-direction: column;
     gap: 1rem;
     align-self: stretch;
     align-items: center;
   }
-  
+
   .header-stats {
     gap: 1.5rem;
     align-self: stretch;
     justify-content: center;
   }
-  
+
   .version-info-header {
     align-self: center;
     text-align: center;
   }
-  
+
   .title {
     font-size: 1.5rem;
   }
-  
+
   .subtitle {
     font-size: 1rem;
   }
-  
+
   .search-input {
     padding: 0.875rem 0.875rem 0.875rem 2.5rem;
   }
-  
+
   .search-icon {
     left: 0.75rem;
     width: 1rem;
     height: 1rem;
   }
-  
+
   .filter-options {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .radio-group {
     justify-content: flex-start;
   }
-  
+
   .results-list {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .vendor-header {
     padding: 1rem;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
   }
-  
+
   .vendor-actions {
     width: 100%;
   }
-  
+
   .view-devices-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .device-item {
     padding: 0.75rem 1rem;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .pagination {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .pagination-left,
   .pagination-center,
   .pagination-right {
     width: 100%;
     justify-content: center;
   }
-  
+
   .pagination-center {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .page-jump {
     order: -1;
   }
-  
+
   .page-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .page-size-selector {
     justify-content: center;
   }
@@ -1374,40 +1388,40 @@ html {
   .header {
     padding: 1.5rem 0;
   }
-  
+
   .title {
     font-size: 1.25rem;
   }
-  
+
   .radio-group {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .results-list {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
+
   .vendor-card {
     margin: 0;
   }
-  
+
   .vendor-header {
     padding: 1rem;
   }
-  
+
   .device-item {
     padding: 0.5rem 1rem;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
   }
-  
+
   .device-id {
     min-width: auto;
   }
-  
+
   .stat-number {
     font-size: 1.5rem;
   }
@@ -1521,17 +1535,17 @@ html {
     padding: 1.5rem 0 1rem;
     margin-top: 2rem;
   }
-  
+
   .footer-content {
     grid-template-columns: 1fr;
     gap: 1.5rem;
     margin-bottom: 1.5rem;
   }
-  
+
   .footer-section {
     text-align: center;
   }
-  
+
   .footer-links {
     align-items: center;
   }
@@ -1542,12 +1556,12 @@ html {
     padding: 1rem 0 0.75rem;
     margin-top: 1.5rem;
   }
-  
+
   .footer-content {
     gap: 1rem;
     margin-bottom: 1rem;
   }
-  
+
   .footer-bottom {
     padding-top: 1rem;
   }
