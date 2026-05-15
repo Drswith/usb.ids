@@ -1,27 +1,40 @@
-# API overview
+# API Overview
 
-Generated TypeScript definitions ship in `dist/index.d.ts`. This page summarizes the main entry points.
+This repository is CLI-first. Programmatic usage is secondary and published from `@usb-ids/sdk`.
 
-## Node (`usb.ids`)
+## CLI (`usb-ids`)
 
-| Export                                                                                   | Description                                                                            |
-| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `loadUsbData()` / `loadUsbDataSync()`                                                    | Read bundled `usb.ids.json` from the package root; **no network**.                     |
-| `updateUsbData({ force?, root? })`                                                       | Download, parse, write files under `root` (default: package root).                     |
-| `getVendors` / `getVendor` / `getDevices` / `getDevice` / `getUsbData` / `searchDevices` | Async helpers over loaded data; optional `forceUpdate` triggers `updateUsbData` first. |
-| `filterVendors` / `filterDevices` / `searchInData`                                       | Pure functions on an in-memory `UsbIdsData` map.                                       |
-| `toV1` / `isDatasetV2`                                                                   | Schema conversion.                                                                     |
-| `UsbApiError` / `ERROR_CODES`                                                            | Structured errors.                                                                     |
+Primary automation interface:
 
-## Browser (`usb.ids/browser`)
+- `fetch [--force] [--offline]`
+- `version [--json]`
+- `check [--json]`
+- `ui [--port <port>]`
+- `help`
 
-| Export                                             | Description                                                       |
-| -------------------------------------------------- | ----------------------------------------------------------------- |
-| `loadUsbDataFromUrl(url)`                          | `fetch` + `JSON.parse`; throws `UsbApiError` on HTTP/JSON errors. |
-| `filterVendors` / `filterDevices` / `searchInData` | Same pure implementations as Node.                                |
+Exit codes are stable:
 
-## CLI (`usb-ids` binary)
+- `0` success
+- `2` usage
+- `3` data missing
+- `4` network
+- `5` parse
+- `6` filesystem
 
-Installed globally or via `pnpm exec`. Subcommands: `fetch`, `version`, `check`, `ui`, `help`. See README.
+`version --json` and `check --json` return JSON via stdout for agents.
 
-Optional: run `pnpm exec typedoc` if you add TypeDoc as a devDependency to refresh a full symbol listing into `docs/api/`.
+## SDK (`@usb-ids/sdk`)
+
+Core exports include:
+
+- Node data loading/update: `loadUsbData`, `loadUsbDataSync`, `updateUsbData`
+- Query helpers: `filterVendors`, `filterDevices`, `searchInData`
+- Higher-level async helpers: `getVendors`, `getVendor`, `getDevices`, `getDevice`, `getUsbData`, `searchDevices`
+- Browser entry: `@usb-ids/sdk/browser`
+- Types: `UsbIdsData`, `UsbDatasetV2`, `VersionInfo`, etc.
+- Compatibility helpers: `isDatasetV2`, `toV1`
+
+## Compatibility Note
+
+`usb.ids` (CLI package) currently provides a compatibility export that re-exports SDK APIs.  
+New SDK consumers should migrate to `@usb-ids/sdk` directly.

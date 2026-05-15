@@ -13,6 +13,33 @@
     "usb.ids.version.json"
   ],
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "pnpm --filter @usb-ids/sdk run build && pnpm run build && vitest run --config vitest.config.ts",
+    "build:lib": "tsdown --config tsdown.config.ts",
+    "build:artifacts": "tsx scripts/build-artifacts.ts",
+    "build": "pnpm run build:lib && pnpm run build:artifacts",
+    "fetch-usb-ids": "pnpm --filter @usb-ids/sdk run build && tsx src/cli.ts fetch",
+    "diff-hash": "tsx scripts/diff-hash.ts",
+    "dev:ui": "pnpm --filter @usb-ids/sdk run build && tsx src/cli.ts ui"
+  },
+  "dependencies": {
+    "@usb-ids/sdk": "workspace:*",
+    "sirv": "^2.0.4"
+  },
+  "devDependencies": {
+    "execa": "^9.6.0"
+  },
   "engines": {
     "node": ">=18"
   }

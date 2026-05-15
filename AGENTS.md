@@ -9,16 +9,16 @@ This repository publishes USB registry data and tools. Treat it as an agent-firs
 3. Web UI: the browser app is a consumer of the same data and query contracts.
 4. Node SDK: JavaScript APIs are secondary to the CLI and should not drive architecture decisions ahead of CLI usability.
 
-## Current Migration Target
+## Repository Structure
 
-The active OpenSpec change is `agent-first-monorepo`. Its target structure is:
+Current package ownership:
 
 - `packages/cli`: owns the published `usb.ids` package name and the `usb-ids` binary.
 - `packages/sdk`: owns the secondary Node/browser SDK package, expected to publish as `@usb-ids/sdk`.
 - `packages/web`: owns the Vite search UI and GitHub Pages build.
 - root workspace: private pnpm monorepo orchestration, shared configs, OpenSpec, `.agents/` shared agent assets, and repository governance.
 
-Do not move files into that structure ad hoc. Follow the OpenSpec tasks so package boundaries, tests, exports, and release workflows move together.
+Do not move files across package boundaries ad hoc. Follow OpenSpec changes so package ownership, tests, exports, and workflows stay coherent.
 
 ## Required Workflow
 

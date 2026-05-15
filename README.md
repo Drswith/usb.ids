@@ -8,123 +8,121 @@
 
 </div>
 
-Published USB ID registry data (vendors, devices, USB classes, HID tables, and related sections from the official `usb.ids` file), a small Node API, a browser-safe entry, a CLI, and a search UI.
+USB registry data and tools in an agent-first pnpm monorepo.  
+Primary product surface is the `usb-ids` CLI; SDK and web are secondary consumers.
 
-**Migrating from 1.x:** JSON on disk may be **schema v2** (`schemaVersion: 2`). Node helpers still return the legacy vendor map by default; use `toV1()` if you load v2 JSON yourself. See [docs/migration-v1-to-v2.md](docs/migration-v1-to-v2.md).
+## Workspace Layout
 
-## Features
+- `packages/cli` — published package `usb.ids`, binary `usb-ids`, and CLI-owned data files (`usb.ids*`).
+- `packages/sdk` — secondary programmatic package `@usb-ids/sdk` (Node/browser helpers and types).
+- `packages/web` — Vite search UI package, deployed to GitHub Pages.
+- root — workspace orchestration, OpenSpec, governance docs/templates, CI/workflows.
 
-- **Dual runtimes:** Node default export loads bundled `usb.ids.json` with **no network** unless you call `updateUsbData` / `forceUpdate` APIs.
-- **Browser:** import `usb.ids/browser` for `fetch` + pure filters/search (no `node:*`).
-- **CLI:** `fetch`, `version`, `check`, `ui` (static UI + JSON routes).
-- **Full parse:** Schema v2 includes vendors/devices/subsystems, class hierarchy, audio/HID/language/video aux tables.
-- **Delivery:** Build emits minified JSON, compact layout, gzip/brotli, vendor shards under `dist/data/` (see [docs/architecture.md](docs/architecture.md)).
+## CLI (Primary)
 
-## Installation
+Install:
 
 ```bash
-npm install -g usb.ids    # CLI
-npm install usb.ids       # library + data files
+npm install -g usb.ids
 ```
 
-Yarn and pnpm work the same. The package does not run install-time fetch scripts.
-
-## CLI
+Core commands:
 
 ```bash
-usb-ids fetch          # update cwd (or package) data
+usb-ids fetch
 usb-ids fetch --force
+usb-ids fetch --offline
 usb-ids version
+usb-ids version --json
 usb-ids check
-usb-ids ui             # default port 3000
-usb-ids ui --port 8080
+usb-ids check --json
+usb-ids ui --port 3000
 usb-ids help
 ```
 
-Publishing to npm is performed **only** by the GitHub Action `Auto Update USB.IDS` (local `pnpm run release` exits with instructions).
+Stable exit codes:
 
-## Node API
+- `0` success
+- `2` usage error
+- `3` data missing
+- `4` network failure
+- `5` parse failure
+- `6` filesystem failure
+
+`version --json` and `check --json` write machine-readable JSON to `stdout` only.
+
+## SDK (Secondary)
+
+Use `@usb-ids/sdk` for programmatic access:
+
+```bash
+pnpm add @usb-ids/sdk
+```
 
 ```ts
-import {
-  filterVendors,
-  getDevice,
-  getDevices,
-  getUsbData,
-  getVendor,
-  getVendors,
-  loadUsbData,
-  searchDevices,
-  searchInData,
-  updateUsbData,
-} from "usb.ids";
+import { getVendors, loadUsbData, searchInData } from "@usb-ids/sdk";
 
-// Local data only (no network)
 const data = await loadUsbData();
 const vendors = await getVendors();
-const vendor = await getVendor("05ac"); // 4-digit hex: exact vendor id
-
-// Explicit refresh (download + write files)
-await updateUsbData({ force: true });
+const found = searchInData(data, "keyboard");
 ```
 
-- String vendor/device filters: **four hex digits** are treated as **exact** ids; other strings use substring search on names/ids.
-- `UsbApiError` and `ERROR_CODES` identify structured failures.
+Migration note: `usb.ids` currently keeps a compatibility export that re-exports SDK APIs, but new integrations should use `@usb-ids/sdk` directly.
 
-## Browser
+## Web
 
-```ts
-import { filterVendors, loadUsbDataFromUrl, searchInData } from "usb.ids/browser";
+Local run:
 
-const data = await loadUsbDataFromUrl("https://unpkg.com/usb.ids@latest/usb.ids.json");
+```bash
+pnpm --filter @usb-ids/web run dev
 ```
 
-Use your own CDN URL; v2 JSON is normalized to v1-shaped vendor maps in Node APIs, but browser `loadUsbDataFromUrl` returns parsed JSON as-is—pass through `toV1` from the main export if you bundle the full package on the server only, or consume v2 directly.
+Build:
 
-## Conditional exports
+```bash
+pnpm --filter @usb-ids/web run build
+```
 
-| Subpath                      | Purpose                                                 |
-| ---------------------------- | ------------------------------------------------------- |
-| `usb.ids`                    | Node-oriented API (resolves to `dist/index.js`) / types |
-| `usb.ids/browser`            | Browser-safe bundle                                     |
-| `usb.ids/data/min`           | `dist/data/usb.ids.min.json` (after `pnpm run build`)   |
-| `usb.ids/data/compact`       | Compact array encoding                                  |
-| `usb.ids/data/vendors-index` | Vendor index for lazy loading                           |
-| `usb.ids/data/version`       | Manifest with optional `artifacts` sizes                |
+## Monorepo Development
 
-Root-published files: `usb.ids`, `usb.ids.json`, `usb.ids.version.json`, `dist/` (see `package.json` `files`).
-
-## Schema v2 (summary)
-
-Top-level fields include `schemaVersion: 2`, `vendors`, `classes`, `audioTerminals`, `hidDescriptors`, `hidItemTypes`, `biasTypes`, `phyTypes`, `hidUsagePages`, `languages`, `hidCountryCodes`, `videoTerminals`, `hcts`. Legacy tools expect a flat `Record<vendorId, UsbVendor>`; use `toV1(dataset)` from `usb.ids`.
-
-## Data workflow (repository)
-
-**Strategy A (this repo):** The auto-update workflow commits `usb.ids`, `usb.ids.json`, `usb.ids.version.json`, and bumps `package.json` **CalVer** `2.YYYYMMDD.N` when upstream `usb.ids` content changes. The `YYYYMMDD` segment is derived from the upstream file header `# Version: YYYY.MM.DD` (not the CI clock). The `N` suffix increments when multiple npm releases share that upstream date.
-
-**Strategy B:** Keep large JSON out of git and run `pnpm run fetch-usb-ids` in CI before site build (see Pages workflow). Pick one policy per fork; this upstream uses A.
-
-Dry-run: workflow dispatch mode **dry-run** runs fetch + full build without commit or npm publish.
-
-## Development
-
-Requirements: Node ≥ 18, pnpm recommended.
+Requirements: Node 18+, pnpm 9+.
 
 ```bash
 pnpm install
-pnpm run fetch-usb-ids    # optional: refresh data
-pnpm run lint && pnpm run typecheck
-pnpm run test:coverage    # coverage thresholds in vitest.config.ts
-pnpm run test:bench       # optional vitest bench
-pnpm run build            # lib + dist/data artefacts + ui
+pnpm run openspec:validate
+pnpm run format
+pnpm run lint
+pnpm run typecheck
+pnpm run test
+pnpm run build
 ```
+
+Package-scoped examples:
+
+```bash
+pnpm --filter @usb-ids/sdk run test
+pnpm --filter usb.ids run test
+pnpm --filter @usb-ids/web run typecheck
+```
+
+## Data / Release Automation
+
+- Auto-update workflow compares upstream `usb.ids` hash vs npm latest.
+- When changed, workflow updates `packages/cli/usb.ids*`, builds workspace outputs, bumps CLI/SDK versions, tags, and publishes.
+- Local manual publish is not the source of truth; release remains workflow-owned.
+
+## OpenSpec and Agent Assets
+
+- Active migration change: `openspec/changes/agent-first-monorepo/`
+- Agent instructions: `AGENTS.md`
+- Shared reusable skills: `.agents/skills/`
 
 ## Docs
 
-- [Architecture & data flow](docs/architecture.md)
-- [Migrate v1 JSON to v2](docs/migration-v1-to-v2.md)
+- [Architecture](docs/architecture.md)
 - [API overview](docs/api.md)
-- [Contributing / parser fixtures](docs/contributing.md)
+- [Contributing](docs/contributing.md)
+- [Migration v1 to v2](docs/migration-v1-to-v2.md)
 
 ## License
 

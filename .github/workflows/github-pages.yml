@@ -21,7 +21,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # 单次部署的工作描述
   deploy:
     environment:
       name: github-pages
@@ -44,7 +43,7 @@ jobs:
         run: pnpm install
 
       - name: Build Web App
-        run: pnpm run build:app --outDir dist/ui
+        run: pnpm --filter "./packages/web" run build
         env:
           VITE_BASE_PATH: /usb.ids/
 
@@ -54,7 +53,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: ./dist/ui
+          path: ./packages/web/dist
 
       - name: Deploy to GitHub Pages
         id: deployment

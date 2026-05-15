@@ -3,29 +3,43 @@
 ## Prerequisites
 
 - Node.js 18+
-- pnpm (recommended; npm/yarn work for installing this package)
+- pnpm 9+
 
 ## Workflow
 
-1. Fork and branch from `main`.
-2. `pnpm install`
-3. `pnpm run lint` and `pnpm run typecheck` before pushing.
-4. `pnpm run test:coverage` — thresholds are defined in `vitest.config.ts` (line coverage on `src/**`, excluding CLI/utils glue where noted).
+1. Branch from `main`.
+2. Run `pnpm install`.
+3. Keep behavior/package/workflow changes aligned with OpenSpec (`openspec/changes/*`).
+4. Validate before push:
 
-## Parser and fixtures
+```bash
+pnpm run openspec:validate
+pnpm run format
+pnpm run lint
+pnpm run typecheck
+pnpm run test
+pnpm run build
+```
 
-- Full-line parsing lives in `src/parser/full-usb-ids.ts`. Vendor blocks use indentation: vendor line → `\t` device → `\t\t` subsystem.
-- **Regression tests:** add or extend snippets under `tests/fixtures/` (see `mini-usb.ids.ts`) so each major section (classes, AT, HID, HUT, languages, HCC, VT/HCT) stays covered without committing a multi-megabyte `usb.ids` solely for tests.
-- For full-file behaviour, CI and local runs can use the repo-root `usb.ids` / `usb.ids.json` after `pnpm run fetch-usb-ids`.
+## Package Ownership
 
-## Commits and releases
+- `packages/cli`: primary product (`usb-ids`), CLI-owned data files, CLI integration tests.
+- `packages/sdk`: secondary SDK, parser/query/fetch/repository core, SDK unit tests.
+- `packages/web`: web UI consumer of SDK browser/query contracts.
 
-- Human PRs: conventional commits are welcome.
-- **npm releases** are automated by `.github/workflows/auto-update.yml` after a successful data update; local `pnpm run release` is intentionally blocked with a message to use that pipeline.
+## CLI Contract Rules
 
-## UI (`app/`)
+- Keep CLI deterministic and scriptable.
+- Prefer JSON output (`--json`) for structured state.
+- Keep exit codes stable.
+- Changes affecting command behavior require updated tests under `packages/cli/tests`.
 
-- Prefer DOM APIs and safe highlighting (`app/dom-safe.ts`) over `innerHTML` with user-controlled strings.
-- Search UI renders **paginated** results as a responsive CSS grid (`app/styles.css`); `app/virtual-list.ts` remains available if you reintroduce windowed rendering for very long lists.
+## Data and Release
 
-If you add a script under `scripts/`, document it in `scripts/README.md` and wire an npm script when appropriate.
+- Data update and npm publish are workflow-owned (`.github/workflows/auto-update.yml`).
+- Do not rely on local manual publish as source of truth.
+
+## Agent Assets
+
+- Use `AGENTS.md` as the entry contract.
+- Keep reusable skills under `.agents/skills/` (vendor-neutral).

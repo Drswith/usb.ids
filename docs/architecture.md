@@ -1,53 +1,47 @@
 # Architecture
 
-## High-level flow
+## Package Topology
 
 ```mermaid
-flowchart TB
-  subgraph sources [Upstream]
-    U1[linux-usb.org usb.ids]
-    U2[systemd usb.ids mirror]
-  end
-  subgraph fetch [Fetch layer]
-    F[fetcher / downloadFromUrls]
-  end
-  subgraph parse [Parse]
-    P[parseUsbIdsFull → UsbDatasetV2]
-  end
-  subgraph io [Repository]
-    R[file-store: raw + json + version]
-  end
-  subgraph consumers [Consumers]
-    API[Node API loadUsbData / updateUsbData]
-    BR[browser entry + pure query]
-    CLI[CLI fetch / ui]
-    UI[Vite web UI]
-  end
-  U1 --> F
-  U2 --> F
-  F --> P
-  P --> R
-  R --> API
-  R --> CLI
-  API --> BR
-  R --> UI
-  CLI --> UI
+flowchart LR
+  U[Upstream usb.ids sources] --> SDK[packages/sdk]
+  SDK --> CLI[packages/cli]
+  SDK --> WEB[packages/web]
+  CLI --> DATA[packages/cli/usb.ids* + dist/data]
+  WEB --> PAGES[GitHub Pages]
 ```
 
-## Modules
+## Responsibilities
 
-| Layer                        | Role                                                                     |
-| ---------------------------- | ------------------------------------------------------------------------ |
-| `src/fetcher`                | HTTP GET with retries, timeouts, `Accept-Encoding`                       |
-| `src/parser`                 | Line-based state machine for full `usb.ids`; hash + version metadata     |
-| `src/repository`             | Read/write `usb.ids`, `usb.ids.json`, `usb.ids.version.json`             |
-| `src/service`                | Orchestrates fetch → parse → persist version info                        |
-| `src/node/data`              | Package-root resolution + `loadUsbData` / `updateUsbData`                |
-| `src/pure/query`             | Vendor/device filter + search (shared Node/browser)                      |
-| `src/legacy/to-v1`           | v2 dataset → legacy `Record<vid, UsbVendor>`                             |
-| `scripts/build-artifacts.ts` | Emits `dist/data/*` (min, compact, shards, compressed, version manifest) |
+### `packages/sdk`
 
-## Versioning
+- Fetch layer (`src/fetcher`)
+- Parser + schema transforms (`src/parser`, `src/legacy`)
+- Query helpers (`src/pure/query`)
+- Repository/service orchestration (`src/repository`, `src/service`)
+- Node/browser API surface and public types
 
-- **npm / `usb.ids.version.json`:** CalVer `M.YYYYMMDD.N` where `M` matches dataset `schemaVersion` (currently `2`). The `YYYYMMDD` segment mirrors upstream `# Version: YYYY.MM.DD` in raw `usb.ids`.
-- **Content:** `upstreamHash` (SHA-256 of raw `usb.ids` bytes) drives “needs update” in CI vs the published npm manifest (legacy field `contentHash` is still read when comparing to older publishes).
+### `packages/cli`
+
+- Command runtime (`src/cli.ts`)
+- Published binary `usb-ids`
+- CLI-owned data files: `usb.ids`, `usb.ids.json`, `usb.ids.version.json`
+- Data artifact generation (`scripts/build-artifacts.ts` -> `dist/data/*`)
+
+### `packages/web`
+
+- Vite search UI (`app/*`)
+- Uses SDK browser/query contracts via `@usb-ids/sdk/browser`
+- Built and deployed separately to Pages
+
+## Data Versioning
+
+- Manifest uses CalVer-style release version: `schemaMajor.YYYYMMDD.N`
+- `upstreamHash` is SHA-256 of upstream source content
+- Auto-update compares upstream hash with npm latest manifest to skip no-op releases
+
+## Repository Layer
+
+- Root package is private monorepo orchestration only
+- CI validates: OpenSpec, format, lint, typecheck, test, build
+- OpenSpec change `agent-first-monorepo` tracks migration tasks/spec contracts
