@@ -31,6 +31,8 @@ Core commands:
 ```bash
 usb-ids fetch
 usb-ids fetch --force
+usb-ids fetch --force --interactive
+usb-ids fetch --force --interactive --yes
 usb-ids fetch --offline
 usb-ids version
 usb-ids version --json

@@ -49,9 +49,14 @@
     "dev:ui": "tsx src/cli.ts ui"
   },
   "dependencies": {
+    "commander": "^14.0.2",
+    "picocolors": "^1.1.1",
+    "prompts": "^2.4.2",
     "sirv": "^2.0.4"
   },
   "devDependencies": {
+    "@types/prompts": "^2.4.9",
+    "@usb-ids/sdk": "workspace:*",
     "execa": "^9.6.0"
   },
   "engines": {
