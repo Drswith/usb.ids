@@ -14,10 +14,23 @@ export default defineConfig([
   {
     entry: {
       index: "src/sdk-compat.ts",
+      browser: "src/browser-compat.ts",
+      version: "src/version-compat.ts",
     },
     format: "esm",
     platform: "node",
     dts: true,
+    clean: false,
+    outDir: "dist",
+  },
+  {
+    entry: {
+      index: "src/sdk-compat.ts",
+      version: "src/version-compat.ts",
+    },
+    format: "cjs",
+    platform: "node",
+    dts: false,
     clean: false,
     outDir: "dist",
   },

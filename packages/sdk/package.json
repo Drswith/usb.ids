@@ -1,6 +1,7 @@
 {
   "name": "@usb-ids/sdk",
   "version": "1.0.1766044584391",
+  "private": true,
   "description": "Secondary Node/browser SDK for usb.ids.",
   "license": "MIT",
   "files": [

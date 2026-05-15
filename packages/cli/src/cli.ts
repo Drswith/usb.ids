@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import sirv from "sirv";
-import { config, fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile } from "@usb-ids/sdk";
+import { config, fetchUsbIdsData, loadVersionInfo, saveUsbIdsToFile } from "../../sdk/src/index";
 
 const EXIT_CODES = {
   SUCCESS: 0,

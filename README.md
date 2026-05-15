@@ -14,7 +14,7 @@ Primary product surface is the `usb-ids` CLI; SDK and web are secondary consumer
 ## Workspace Layout
 
 - `packages/cli` — published package `usb.ids`, binary `usb-ids`, and CLI-owned data files (`usb.ids*`).
-- `packages/sdk` — secondary programmatic package `@usb-ids/sdk` (Node/browser helpers and types).
+- `packages/sdk` — internal SDK source (Node/browser helpers and types), not published independently.
 - `packages/web` — Vite search UI package, deployed to GitHub Pages.
 - root — workspace orchestration, OpenSpec, governance docs/templates, CI/workflows.
 
@@ -53,21 +53,21 @@ Stable exit codes:
 
 ## SDK (Secondary)
 
-Use `@usb-ids/sdk` for programmatic access:
-
-```bash
-pnpm add @usb-ids/sdk
-```
+Programmatic access is exported from `usb.ids`:
 
 ```ts
-import { getVendors, loadUsbData, searchInData } from "@usb-ids/sdk";
+import { getVendors, loadUsbData, searchInData } from "usb.ids";
 
 const data = await loadUsbData();
 const vendors = await getVendors();
 const found = searchInData(data, "keyboard");
 ```
 
-Migration note: `usb.ids` currently keeps a compatibility export that re-exports SDK APIs, but new integrations should use `@usb-ids/sdk` directly.
+Browser-safe subpath:
+
+```ts
+import { filterVendors, searchInData } from "usb.ids/browser";
+```
 
 ## Web
 
@@ -108,7 +108,7 @@ pnpm --filter @usb-ids/web run typecheck
 ## Data / Release Automation
 
 - Auto-update workflow compares upstream `usb.ids` hash vs npm latest.
-- When changed, workflow updates `packages/cli/usb.ids*`, builds workspace outputs, bumps CLI/SDK versions, tags, and publishes.
+- When changed, workflow updates `packages/cli/usb.ids*`, builds workspace outputs, bumps `usb.ids` version, tags, and publishes.
 - Local manual publish is not the source of truth; release remains workflow-owned.
 
 ## OpenSpec and Agent Assets
