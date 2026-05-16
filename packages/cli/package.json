@@ -1,6 +1,6 @@
 {
   "name": "usb.ids",
-  "version": "1.0.1766044584391",
+  "version": "1.0.1766044470065",
   "description": "USB IDs CLI and data artifacts package.",
   "license": "MIT",
   "bin": {
