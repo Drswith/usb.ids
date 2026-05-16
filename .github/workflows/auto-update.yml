@@ -103,7 +103,7 @@ jobs:
         if: steps.plan.outputs.run_fetch == 'true'
         run: |
           if [ "${{ steps.plan.outputs.fetch_force }}" = "true" ]; then
-            pnpm --filter "./packages/cli" --if-present run fetch-usb-ids -- --force
+            pnpm --filter "./packages/cli" exec tsx src/cli.ts fetch --force
           else
             pnpm run fetch-usb-ids
           fi
