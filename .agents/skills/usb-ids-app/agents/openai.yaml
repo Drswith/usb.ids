@@ -1,0 +1,4 @@
+interface:
+  display_name: "USB IDs App"
+  short_description: "Operate usb.ids through its CLI workflows"
+  default_prompt: "Use $usb-ids-app to inspect or operate this repository's usb.ids product through the supported CLI workflows."

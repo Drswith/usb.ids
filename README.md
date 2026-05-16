@@ -119,6 +119,12 @@ pnpm --filter @usb-ids/web run typecheck
 - Agent instructions: `AGENTS.md`
 - Shared reusable skills: `.agents/skills/`
 
+## User-Facing Agent Skill
+
+- App skill: `.agents/skills/usb-ids-app/`
+- Copyable prompt: `Use $usb-ids-app to inspect the current usb.ids manifest in this repository, report the release and upstream versions, and tell me whether I should refresh the package-local data.`
+- Maintainer workflow skills remain under `.agents/skills/openspec-*`; use `usb-ids-app` when the user wants to operate the product rather than modify the repository.
+
 ## Docs
 
 - [Architecture](docs/architecture.md)
