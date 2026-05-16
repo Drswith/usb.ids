@@ -1,9 +1,11 @@
 {
-  "fetchTime": 1766044470065,
-  "fetchTimeFormatted": "2025-12-18 07:54:30 UTC",
-  "contentHash": "0f5b5146ae347b504c5ca291510792132b7aa5dd90cda480294a2b8123da3917",
-  "source": "api",
+  "releaseVersion": "2.20251213.0",
+  "upstreamVersion": "2025.12.13",
+  "upstreamDate": "2025-12-13 20:34:01",
+  "upstreamHash": "0f5b5146ae347b504c5ca291510792132b7aa5dd90cda480294a2b8123da3917",
+  "schemaVersion": 2,
+  "buildTime": 1778943924944,
+  "buildTimeFormatted": "2026-05-16 15:05:24 UTC",
   "vendorCount": 3427,
-  "deviceCount": 20535,
-  "version": "v1.0.1766044470065"
+  "deviceCount": 20535
 }
