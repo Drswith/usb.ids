@@ -2,11 +2,11 @@
   "name": "usb.ids",
   "version": "1.0.1766044584391",
   "description": "USB IDs CLI and data artifacts package.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/Drswith/usb.ids"
   },
-  "license": "MIT",
   "bin": {
     "usb-ids": "./dist/cli.js"
   },
