@@ -2,6 +2,10 @@ import type { UsbDatasetV2, UsbIdsData, VersionInfo } from "../types";
 import * as fs from "node:fs";
 import { normalizeVersionInfo } from "../version-manifest";
 
+function writeJsonFile(value: unknown, filePath: string): void {
+  fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
 export async function saveRawUsbIdsFile(content: string, filePath: string): Promise<void> {
   try {
     fs.writeFileSync(filePath, content, "utf8");
@@ -15,8 +19,7 @@ export async function saveUsbIdsToFile(
   filePath: string,
 ): Promise<void> {
   try {
-    const jsonContent = JSON.stringify(data, null, 2);
-    fs.writeFileSync(filePath, jsonContent, "utf8");
+    writeJsonFile(data, filePath);
   } catch (error) {
     throw new Error(`Failed to save usb.ids JSON: ${(error as Error).message}`);
   }
@@ -24,8 +27,7 @@ export async function saveUsbIdsToFile(
 
 export async function saveVersionInfo(versionInfo: VersionInfo, filePath: string): Promise<void> {
   try {
-    const jsonContent = JSON.stringify(versionInfo, null, 2);
-    fs.writeFileSync(filePath, jsonContent, "utf8");
+    writeJsonFile(versionInfo, filePath);
   } catch (error) {
     throw new Error(`Failed to save version file: ${(error as Error).message}`);
   }

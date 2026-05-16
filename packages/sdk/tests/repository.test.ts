@@ -32,6 +32,7 @@ describe("repository file-store", () => {
       deviceCount: 2,
     };
     await saveVersionInfo(v, p);
+    expect(fs.readFileSync(p, "utf8").endsWith("\n")).toBe(true);
     expect(loadVersionInfo(p)).toEqual(v);
   });
 
@@ -73,7 +74,9 @@ describe("repository file-store", () => {
     const p = path.join(dir, "out.json");
     const data = { x: { vendor: "x", name: "N", devices: {} } };
     await saveUsbIdsToFile(data, p);
-    const parsed = JSON.parse(fs.readFileSync(p, "utf8"));
+    const content = fs.readFileSync(p, "utf8");
+    expect(content.endsWith("\n")).toBe(true);
+    const parsed = JSON.parse(content);
     expect(parsed).toEqual(data);
   });
 });
