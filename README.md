@@ -9,7 +9,17 @@
 </div>
 
 USB registry data and tools in an agent-first pnpm monorepo.  
-Primary product surface is the `usb-ids` CLI; SDK and web are secondary consumers.
+Recommended entry point for agents working from this repository is the repo-local `$usb-ids-app` skill, which drives the primary `usb-ids` CLI surface. SDK and web are secondary consumers.
+
+## Use With An Agent (Recommended)
+
+When the user wants an agent to operate `usb.ids` from this repository checkout, start with the app skill:
+
+- Skill path: `.agents/skills/usb-ids-app/`
+- Copyable prompt: `Use $usb-ids-app to inspect the current usb.ids manifest in this repository, report the release and upstream versions, and tell me whether I should refresh the package-local data.`
+- Scope: use `usb-ids-app` for product workflows; use `.agents/skills/openspec-*` when the task is to modify repository code, specs, or workflows.
+
+The skill keeps the interaction CLI-first and package-aware, so the agent operates the supported `usb-ids` surface instead of starting from SDK internals.
 
 ## Workspace Layout
 
@@ -118,12 +128,6 @@ pnpm --filter @usb-ids/web run typecheck
 - Active migration change: `openspec/changes/agent-first-monorepo/`
 - Agent instructions: `AGENTS.md`
 - Shared reusable skills: `.agents/skills/`
-
-## User-Facing Agent Skill
-
-- App skill: `.agents/skills/usb-ids-app/`
-- Copyable prompt: `Use $usb-ids-app to inspect the current usb.ids manifest in this repository, report the release and upstream versions, and tell me whether I should refresh the package-local data.`
-- Maintainer workflow skills remain under `.agents/skills/openspec-*`; use `usb-ids-app` when the user wants to operate the product rather than modify the repository.
 
 ## Docs
 
