@@ -67941,6 +67941,10 @@
           "devid": "5843",
           "devname": "BCM58200 ControlVault 3 (FingerPrint sensor + Contacted SmartCard)"
         },
+        "5865": {
+          "devid": "5865",
+          "devname": "Fingerprint Reader (Dell Control Vault)"
+        },
         "6300": {
           "devid": "6300",
           "devname": "Pirelli Remote NDIS Device"
