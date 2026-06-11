@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "lint": "pnpm -r --filter \"./packages/*\" --if-present run lint",
+    "lint-staged": "pnpm run lint",
     "format": "oxfmt . --check",
     "format:fix": "oxfmt .",
     "typecheck": "pnpm -r --filter \"./packages/*\" --if-present run typecheck",

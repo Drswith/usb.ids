@@ -11,6 +11,7 @@
     "usb-ids": "./dist/cli.js"
   },
   "files": [
+    "README.md",
     "dist",
     "usb.ids",
     "usb.ids.json",
