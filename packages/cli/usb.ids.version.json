@@ -1,11 +1,11 @@
 {
-  "releaseVersion": "2.20260610.1",
-  "upstreamVersion": "2026.06.10",
-  "upstreamDate": "2026-06-10 20:34:02",
-  "upstreamHash": "6800dac3893ca849e130fe478bdee0876529cefcda76bcbeb95a304f27c2dfaa",
+  "releaseVersion": "2.20260626.0",
+  "upstreamVersion": "2026.06.26",
+  "upstreamDate": "2026-06-26 20:34:02",
+  "upstreamHash": "7837d428aa9985090b571e3e8a9daf3f36d58b1420a11efa45e2f562739ccafe",
   "schemaVersion": 2,
-  "buildTime": 1781147091912,
-  "buildTimeFormatted": "2026-06-11 03:04:51 UTC",
+  "buildTime": 1782521425515,
+  "buildTimeFormatted": "2026-06-27 00:50:25 UTC",
   "vendorCount": 3427,
-  "deviceCount": 20536
+  "deviceCount": 20537
 }

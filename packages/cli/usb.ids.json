@@ -60558,6 +60558,10 @@
           "devid": "6102",
           "devname": "fx-CP400"
         },
+        "6103": {
+          "devid": "6103",
+          "devname": "fx-CG50"
+        },
         "6801": {
           "devid": "6801",
           "devname": "PL-40R"
