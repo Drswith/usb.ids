@@ -85,6 +85,9 @@ jobs:
               const dry = process.env.IS_DRY === "true";
               const dataChanged = plan.data_changed === true;
               const publishPending = !dry && plan.publish_pending === true;
+              if (plan.stale_source === true) {
+                console.log("::warning::Upstream view is older than the checked-in release manifest; skipping data refresh to avoid a downgrade.");
+              }
               console.log(`data_changed=${dataChanged}`);
               console.log(`publish_pending=${publishPending}`);
               console.log(`run_pipeline=${dataChanged || publishPending}`);
@@ -130,6 +133,37 @@ jobs:
           NODE
           )
           echo "New version: $NEW_VERSION"
+
+          CURRENT_RELEASE=$(git show "HEAD:packages/cli/usb.ids.version.json" 2>/dev/null | node -e "
+            let data = '';
+            process.stdin.on('data', (chunk) => (data += chunk));
+            process.stdin.on('end', () => {
+              try { process.stdout.write(String(JSON.parse(data).releaseVersion ?? '')); } catch {}
+            });
+          ")
+          if [ -n "$CURRENT_RELEASE" ]; then
+            if ! node -e "
+              const compareCalVer = (a, b) => {
+                const pa = a.split('.').map(Number);
+                const pb = b.split('.').map(Number);
+                for (let i = 0; i < Math.max(pa.length, pb.length); i += 1) {
+                  const x = pa[i] ?? 0;
+                  const y = pb[i] ?? 0;
+                  if (x !== y) return x < y ? -1 : 1;
+                }
+                return 0;
+              };
+              const current = process.argv[1];
+              const next = process.argv[2];
+              if (compareCalVer(next, current) < 0) {
+                console.error(\`Fetched data resolves to \${next}, older than the released \${current} (likely a stale upstream mirror).\`);
+                process.exit(1);
+              }
+            " "$CURRENT_RELEASE" "$NEW_VERSION"; then
+              echo "::error::Refusing release version downgrade ($NEW_VERSION < $CURRENT_RELEASE). Aborting before commit."
+              exit 1
+            fi
+          fi
 
           node -e "
             const fs = require('fs');

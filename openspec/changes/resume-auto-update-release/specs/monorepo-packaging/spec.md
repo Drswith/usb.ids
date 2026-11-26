@@ -60,6 +60,17 @@ The auto-update workflow SHALL publish package artifacts from the correct worksp
 - **THEN** the planning script reports upstream, npm, and local manifest state together with the derived stage decisions in JSON form
 - **THEN** the workflow gates fetch, build, commit, tag, changelog, and publish stages on those decisions rather than a single exit code
 
+#### Scenario: Stale upstream mirror must not downgrade the release
+
+- **WHEN** the upstream view carries an older `# Version` header than the checked-in release manifest (e.g. a lagging fallback mirror served the data because the primary source was unreachable)
+- **THEN** the planning stage skips the data refresh with a visible warning instead of deriving a downgrade version
+- **THEN** a pending release still completes from the committed state
+
+#### Scenario: Fetched data older than the released version
+
+- **WHEN** the fetch stage produced a release version older than the version released at the head of the current branch
+- **THEN** the version-bump stage fails before committing or pushing the downgrade, with an error naming both versions
+
 #### Scenario: Steady state stays a no-op
 
 - **WHEN** the upstream content hash equals the hash published in the latest npm version and the local release version equals the published npm version

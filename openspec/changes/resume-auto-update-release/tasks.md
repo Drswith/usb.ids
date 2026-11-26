@@ -10,6 +10,8 @@
 - [x] 2.2 Gate fetch and the version-bump commit on `data_changed`; gate build and artifact upload on `run_pipeline`; gate tag, changelog, and publish on `publish_pending`.
 - [x] 2.3 Make the tag stage idempotent: accept an existing remote tag peeling into the run's history, fail explicitly when it peels outside it, push `main` only when `data_changed`, and retry the tag push a bounded number of times.
 - [x] 2.4 Make the changelog stage skip when the GitHub release for the tag already exists (`gh release view` with `GH_TOKEN`).
+- [x] 2.5 Guard `update-plan` against stale upstream views: a remote `# Version` header older than the checked-in `upstreamVersion` forces `data_changed=false` with a visible warning, and a pending release still completes from the committed state.
+- [x] 2.6 Guard the version-bump stage against release downgrades: fail before committing or pushing when the fetched data resolves to a version older than the head manifest's released version.
 
 ## 3. Validation
 
