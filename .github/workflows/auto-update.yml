@@ -241,7 +241,7 @@ jobs:
           if gh release view "v$TAG_VERSION" > /dev/null 2>&1; then
             echo "GitHub release for v$TAG_VERSION already exists; skipping changelog generation."
           else
-            pnpm dlx changelogithub
+            pnpm dlx changelogithub@15.0.5 --to "v$TAG_VERSION"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
