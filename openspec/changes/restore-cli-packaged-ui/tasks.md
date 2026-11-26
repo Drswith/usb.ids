@@ -22,6 +22,6 @@
 
 ## 5. npm Re-release
 
-- [ ] 5.1 Dispatch the Auto Update workflow in `auto` mode and verify it plans `data_changed=false`, `publish_pending=true`, then tags and publishes `2.20261125.1`.
-- [ ] 5.2 Verify the published tarball contains `dist/ui` (registry tarball listing or unpkg) and that the npm package's `usb.ids.version.json` releaseVersion matches the published version.
-- [ ] 5.3 Verify `npx usb-ids@2.20261125.1 ui` serves the packaged UI from the registry package.
+- [x] 5.1 Dispatch the Auto Update workflow in `auto` mode and verify it plans `data_changed=false`, `publish_pending=true`, then tags and publishes `2.20261125.1`.
+- [x] 5.2 Verify the published tarball contains `dist/ui` (registry tarball listing or unpkg) and that the npm package's `usb.ids.version.json` releaseVersion matches the published version.
+- [x] 5.3 Verify `npx usb-ids@2.20261125.1 ui` serves the packaged UI from the registry package.
