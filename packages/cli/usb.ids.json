@@ -93896,7 +93896,7 @@
         },
         "3000": {
           "devid": "3000",
-          "devname": "RSP1a"
+          "devname": "RSP1A"
         },
         "3010": {
           "devid": "3010",
@@ -93909,6 +93909,18 @@
         "3030": {
           "devid": "3030",
           "devname": "RSPdx"
+        },
+        "3040": {
+          "devid": "3040",
+          "devname": "nRSP-ST"
+        },
+        "3050": {
+          "devid": "3050",
+          "devname": "RSP1B"
+        },
+        "3060": {
+          "devid": "3060",
+          "devname": "RSPdxR2"
         }
       }
     },
