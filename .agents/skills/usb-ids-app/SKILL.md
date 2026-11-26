@@ -80,7 +80,13 @@ Only use the CLI UI command when `packages/cli/dist/ui` already exists:
 pnpm --filter usb.ids exec node dist/cli.js ui --port 3000
 ```
 
-If `ui` fails because `dist/ui` is missing, explain that this checkout does not currently have packaged UI assets and fall back to the web package dev server.
+If `ui` fails because `dist/ui` is missing, package the web UI first from the repository root (this builds `packages/web` and copies it into `packages/cli/dist/ui`):
+
+```bash
+pnpm run build:app
+```
+
+Then retry the CLI UI command, or fall back to the web package dev server.
 
 ## Exit Codes
 

@@ -121,9 +121,57 @@ describe("usb-ids cli integration (dist/cli.js)", () => {
   });
 
   it("returns filesystem exit code for ui when dist/ui is missing", async () => {
+    // Only meaningful when the packaged UI is absent (CI builds the CLI package
+    // alone for tests); locally `pnpm run build:app` creates dist/ui and the
+    // serving test below takes over instead.
+    if (fs.existsSync(path.join(pkgRoot, "dist", "ui"))) return;
     const result = await runCli(["ui", "--port", "3307"]);
     expect(result.exitCode).toBe(6);
     expect(result.stderr).toContain("dist/ui directory does not exist");
+  });
+
+  it("serves the packaged ui over http when dist/ui exists", async () => {
+    const uiDist = path.join(pkgRoot, "dist", "ui");
+    if (!fs.existsSync(path.join(uiDist, "index.html"))) return;
+
+    const port = 3319;
+    const child = execa("node", [cliDist, "ui", "--port", String(port)], {
+      cwd: pkgRoot,
+      reject: false,
+    });
+    try {
+      const base = `http://localhost:${port}/__usb_ids__/`;
+      let redirectStatus = -1;
+      let pageStatus = -1;
+      let pageBody = "";
+      let dataStatus = -1;
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        try {
+          const redirect = await fetch(`http://localhost:${port}/`, {
+            redirect: "manual",
+          });
+          redirectStatus = redirect.status;
+          const page = await fetch(base);
+          pageStatus = page.status;
+          pageBody = await page.text();
+          const data = await fetch(`${base}usb.ids.json`);
+          dataStatus = data.status;
+          break;
+        } catch {
+          // server not accepting connections yet
+        }
+      }
+      expect(redirectStatus).toBe(302);
+      expect(pageStatus).toBe(200);
+      expect(pageBody).toContain("<!doctype html>");
+      expect(dataStatus).toBe(200);
+    } finally {
+      child.kill();
+      await Promise.race([child, new Promise((resolve) => setTimeout(resolve, 2000))]).catch(
+        () => undefined,
+      );
+    }
   });
 
   it("supports ESM import from usb.ids", async () => {
