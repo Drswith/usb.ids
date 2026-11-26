@@ -1,4 +1,5 @@
-const UI_LOCAL_BASE_URL = "/__usb_ids__/";
+import { UI_LOCAL_BASE_URL } from "./base-url";
+
 const USB_IDS_JSON_FILE = "usb.ids.json";
 const USB_IDS_VERSION_JSON_FILE = "usb.ids.version.json";
 
