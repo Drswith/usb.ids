@@ -9,4 +9,4 @@
 - [x] 2.1 Build the web package with `VITE_BASE_PATH=/usb.ids/` and assert the emitted `dist/index.html` references `/usb.ids/assets/` (and `/usb.ids/` public assets), then serve the output and confirm the page and its entry script resolve with no 404.
 - [x] 2.2 Build without `VITE_BASE_PATH` and assert the emitted base is `/__usb_ids__/`.
 - [x] 2.3 Run `pnpm run openspec:validate` plus workspace lint and typecheck.
-- [ ] 2.4 Push to `main`, watch the Pages workflow complete, and verify the live site loads the app (version panel populated from npm data, search functional).
+- [x] 2.4 Push to `main`, watch the Pages workflow complete, and verify the live site loads the app (version panel populated from npm data, search functional).
