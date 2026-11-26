@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       update_mode:
-        description: "auto (hash vs npm), force (always), dry-run (fetch+build only, no publish)"
+        description: "auto (plan: resume or update), force (always refresh data), dry-run (fetch+build only, no publish)"
         required: false
         default: auto
         type: choice
@@ -69,38 +69,30 @@ jobs:
           echo "is_dry_run=$IS_DRY" >> "$GITHUB_OUTPUT"
           echo "fetch_force=$FETCH_FORCE" >> "$GITHUB_OUTPUT"
 
-          run_fetch=false
-          if [ "$EVENT" = "workflow_dispatch" ]; then
-            case "$MODE" in
-              force)
-                run_fetch=true
-                ;;
-              dry-run|auto)
-                if pnpm run diff-hash; then
-                  echo "No update needed (hash vs npm latest)"
-                  run_fetch=false
-                else
-                  run_fetch=true
-                fi
-                ;;
-            esac
+          if [ "$FETCH_FORCE" = "true" ]; then
+            PLAN_JSON=$(pnpm --filter "./packages/cli" exec tsx scripts/update-plan.ts --json --force)
           else
-            if pnpm run diff-hash; then
-              run_fetch=false
-            else
-              run_fetch=true
-            fi
+            PLAN_JSON=$(pnpm --filter "./packages/cli" exec tsx scripts/update-plan.ts --json)
           fi
-          echo "run_fetch=$run_fetch" >> "$GITHUB_OUTPUT"
+          echo "$PLAN_JSON"
 
-          run_publish=false
-          if [ "$run_fetch" = "true" ] && [ "$IS_DRY" != "true" ]; then
-            run_publish=true
-          fi
-          echo "run_publish=$run_publish" >> "$GITHUB_OUTPUT"
+          # Dry-run may fetch and build, but it never publishes.
+          printf '%s' "$PLAN_JSON" | IS_DRY="$IS_DRY" node -e '
+            let data = "";
+            process.stdin.on("data", (chunk) => (data += chunk));
+            process.stdin.on("end", () => {
+              const plan = JSON.parse(data);
+              const dry = process.env.IS_DRY === "true";
+              const dataChanged = plan.data_changed === true;
+              const publishPending = !dry && plan.publish_pending === true;
+              console.log(`data_changed=${dataChanged}`);
+              console.log(`publish_pending=${publishPending}`);
+              console.log(`run_pipeline=${dataChanged || publishPending}`);
+            });
+          ' >> "$GITHUB_OUTPUT"
 
       - name: Fetch USB IDs
-        if: steps.plan.outputs.run_fetch == 'true'
+        if: steps.plan.outputs.data_changed == 'true'
         run: |
           if [ "${{ steps.plan.outputs.fetch_force }}" = "true" ]; then
             pnpm --filter "./packages/cli" exec tsx src/cli.ts fetch --force
@@ -109,11 +101,11 @@ jobs:
           fi
 
       - name: Full build (lib, data artefacts, UI)
-        if: steps.plan.outputs.run_fetch == 'true'
+        if: steps.plan.outputs.run_pipeline == 'true'
         run: pnpm run build
 
       - name: Upload build artifacts
-        if: steps.plan.outputs.run_fetch == 'true'
+        if: steps.plan.outputs.run_pipeline == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: usb-ids-build-${{ github.run_number }}
@@ -125,7 +117,7 @@ jobs:
           retention-days: 30
 
       - name: Update package versions for publish
-        if: steps.plan.outputs.run_publish == 'true'
+        if: steps.plan.outputs.data_changed == 'true' && steps.plan.outputs.is_dry_run != 'true'
         run: |
           NEW_VERSION=$(node <<'NODE'
           const fs = require('fs');
@@ -161,22 +153,68 @@ jobs:
           - Automated data and CalVer bump"
 
       - name: Create and push tag
-        if: steps.plan.outputs.run_publish == 'true'
+        if: steps.plan.outputs.publish_pending == 'true'
         run: |
+          set -e
           TAG_VERSION=$(node -p "String(require('./packages/cli/package.json').version).replace(/^v/, '')")
-          echo "Creating tag: v$TAG_VERSION"
-          git tag -a "v$TAG_VERSION" -m "Release v$TAG_VERSION"
-          git push origin main
-          git push origin "v$TAG_VERSION"
+          echo "Release tag: v$TAG_VERSION"
+          HEAD_SHA=$(git rev-parse HEAD)
+
+          push_with_retry() {
+            REFSPEC="$1"
+            ATTEMPTS=3
+            i=1
+            while [ "$i" -le "$ATTEMPTS" ]; do
+              if git push origin "$REFSPEC"; then
+                return 0
+              fi
+              if [ "$i" -eq "$ATTEMPTS" ]; then
+                echo "::error::Push of $REFSPEC failed after $ATTEMPTS attempts."
+                return 1
+              fi
+              SLEEP=$((i * 30))
+              echo "Push of $REFSPEC attempt $i failed; retrying in ${SLEEP}s..."
+              sleep "$SLEEP"
+              i=$((i + 1))
+            done
+          }
+
+          REMOTE_TAGS=$(git ls-remote --tags origin)
+          TAG_LINE=$(printf '%s\n' "$REMOTE_TAGS" | awk -v t="refs/tags/v$TAG_VERSION" '$2 == t')
+          if [ -n "$TAG_LINE" ]; then
+            REMOTE_TAG_COMMIT=$(printf '%s\n' "$REMOTE_TAGS" | awk -v t="refs/tags/v$TAG_VERSION^{}" '$2 == t {print $1}')
+            if [ -z "$REMOTE_TAG_COMMIT" ]; then
+              REMOTE_TAG_COMMIT=$(printf '%s' "$TAG_LINE" | awk '{print $1}')
+            fi
+            if [ "$REMOTE_TAG_COMMIT" = "$HEAD_SHA" ]; then
+              echo "Tag v$TAG_VERSION already exists at $HEAD_SHA; skipping creation and push."
+            else
+              echo "::error::Tag v$TAG_VERSION exists at ${REMOTE_TAG_COMMIT:-unknown}; expected $HEAD_SHA. Refusing to move a release tag."
+              exit 1
+            fi
+          else
+            git tag -a "v$TAG_VERSION" -m "Release v$TAG_VERSION"
+            if [ "${{ steps.plan.outputs.data_changed }}" = "true" ]; then
+              push_with_retry "main"
+            fi
+            push_with_retry "v$TAG_VERSION"
+          fi
 
       - name: Generate changelog
-        if: steps.plan.outputs.run_publish == 'true'
-        run: pnpm dlx changelogithub
+        if: steps.plan.outputs.publish_pending == 'true'
+        run: |
+          TAG_VERSION=$(node -p "String(require('./packages/cli/package.json').version).replace(/^v/, '')")
+          if gh release view "v$TAG_VERSION" > /dev/null 2>&1; then
+            echo "GitHub release for v$TAG_VERSION already exists; skipping changelog generation."
+          else
+            pnpm dlx changelogithub
+          fi
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish CLI package to npm (trusted publishing via OIDC)
-        if: steps.plan.outputs.run_publish == 'true'
+        if: steps.plan.outputs.publish_pending == 'true'
         run: pnpm --filter "./packages/cli" publish --access public --provenance --no-git-checks
 
   notify-failure:

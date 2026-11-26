@@ -51,6 +51,7 @@
     "build": "pnpm run build:lib && pnpm run build:artifacts",
     "fetch-usb-ids": "tsx src/cli.ts fetch",
     "diff-hash": "tsx scripts/diff-hash.ts",
+    "update-plan": "tsx scripts/update-plan.ts",
     "dev:ui": "tsx src/cli.ts ui"
   },
   "dependencies": {
