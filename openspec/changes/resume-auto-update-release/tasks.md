@@ -8,7 +8,7 @@
 
 - [x] 2.1 Replace the exit-code-only plan step in `.github/workflows/auto-update.yml` with `update-plan --json`, writing `data_changed`, `publish_pending`, and `run_pipeline` step outputs.
 - [x] 2.2 Gate fetch and the version-bump commit on `data_changed`; gate build and artifact upload on `run_pipeline`; gate tag, changelog, and publish on `publish_pending`.
-- [x] 2.3 Make the tag stage idempotent: accept an existing remote tag peeling to HEAD, fail explicitly when it peels elsewhere, push `main` only when `data_changed`, and retry the tag push a bounded number of times.
+- [x] 2.3 Make the tag stage idempotent: accept an existing remote tag peeling into the run's history, fail explicitly when it peels outside it, push `main` only when `data_changed`, and retry the tag push a bounded number of times.
 - [x] 2.4 Make the changelog stage skip when the GitHub release for the tag already exists (`gh release view` with `GH_TOKEN`).
 
 ## 3. Validation

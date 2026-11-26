@@ -186,10 +186,10 @@ jobs:
             if [ -z "$REMOTE_TAG_COMMIT" ]; then
               REMOTE_TAG_COMMIT=$(printf '%s' "$TAG_LINE" | awk '{print $1}')
             fi
-            if [ "$REMOTE_TAG_COMMIT" = "$HEAD_SHA" ]; then
-              echo "Tag v$TAG_VERSION already exists at $HEAD_SHA; skipping creation and push."
+            if git merge-base --is-ancestor "$REMOTE_TAG_COMMIT" "$HEAD_SHA"; then
+              echo "Tag v$TAG_VERSION already exists at $REMOTE_TAG_COMMIT (within released history, HEAD $HEAD_SHA); skipping creation and push."
             else
-              echo "::error::Tag v$TAG_VERSION exists at ${REMOTE_TAG_COMMIT:-unknown}; expected $HEAD_SHA. Refusing to move a release tag."
+              echo "::error::Tag v$TAG_VERSION exists at ${REMOTE_TAG_COMMIT:-unknown}, which is not part of the current history (HEAD $HEAD_SHA). Refusing to move a release tag."
               exit 1
             fi
           else

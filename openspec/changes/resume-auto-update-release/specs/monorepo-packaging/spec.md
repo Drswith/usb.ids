@@ -38,14 +38,14 @@ The auto-update workflow SHALL publish package artifacts from the correct worksp
 - **THEN** it still builds the package artifacts required for npm publish
 - **THEN** it proceeds with tagging, release notes, and npm publish for the pending version
 
-#### Scenario: Release tag already exists at the expected commit
+#### Scenario: Release tag already exists for the pending version
 
-- **WHEN** the tag for the pending release version already exists on the remote and peels to the head commit of the run
+- **WHEN** the tag for the pending release version already exists on the remote and peels to a commit that is an ancestor of the run's head commit
 - **THEN** the workflow accepts the existing tag and continues with release notes and npm publish without failing or moving the tag
 
 #### Scenario: Existing release tag points elsewhere
 
-- **WHEN** the tag for the pending release version exists on the remote but peels to a different commit
+- **WHEN** the tag for the pending release version exists on the remote but peels to a commit outside the run's history
 - **THEN** the workflow fails the tag stage with an explicit error message and does not move or overwrite the tag
 
 #### Scenario: Tag push is transiently rejected
