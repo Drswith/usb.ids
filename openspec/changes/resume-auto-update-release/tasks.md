@@ -17,4 +17,4 @@
 
 - [x] 3.1 Run `pnpm run openspec:validate` plus workspace lint and typecheck.
 - [x] 3.2 Run the CLI test suite and a targeted local invocation of `update-plan --json` against the pending `2.20261125.0` state, asserting `data_changed=false` and `publish_pending=true`.
-- [ ] 3.3 Dispatch the auto-update workflow in `auto` mode, verify it completes the pending release (GitHub release + `npm view usb.ids version` reports `2.20261125.0`), and close the auto-update failure issue.
+- [x] 3.3 Dispatch the auto-update workflow in `auto` mode, verify it completes the pending release (GitHub release + `npm view usb.ids version` reports `2.20261125.0`), and close the auto-update failure issue.
