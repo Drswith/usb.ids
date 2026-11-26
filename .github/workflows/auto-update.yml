@@ -194,6 +194,11 @@ jobs:
           echo "Release tag: v$TAG_VERSION"
           HEAD_SHA=$(git rev-parse HEAD)
 
+          # Tag creation needs a committer identity even when the data-gated
+          # version-bump step was skipped (resume and packaging re-release paths).
+          git config --local user.name "GitHub Action"
+          git config --local user.email "action@github.com"
+
           push_with_retry() {
             REFSPEC="$1"
             ATTEMPTS=3

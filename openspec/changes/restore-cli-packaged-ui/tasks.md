@@ -17,7 +17,8 @@
 
 - [x] 4.1 Run `pnpm run build:app`, then command-level checks: `packages/cli/dist/ui/index.html` references `/__usb_ids__/` assets, and `node dist/cli.js ui` serves the packaged page and `usb.ids.json` over HTTP with expected status codes and exit behavior.
 - [x] 4.2 Run `pnpm run openspec:validate` plus workspace lint, typecheck, format, and the CLI test suite.
-- [ ] 4.3 Commit the CalVer patch bump (`2.20261125.1`) for the packaging re-release and push to `main` with CI green.
+- [x] 4.3 Commit the CalVer patch bump (`2.20261125.1`) for the packaging re-release and push to `main` with CI green.
+- [x] 4.4 Fix the auto-update tag stage to configure its own git committer identity (the identity previously lived only in the data-gated version-bump step, so new-tag creation on `data_changed=false` paths failed with "Committer identity unknown").
 
 ## 5. npm Re-release
 

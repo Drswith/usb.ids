@@ -9,6 +9,7 @@ Since the monorepo migration (#28), every published `usb.ids` npm release ships 
 - Add `packages/cli/scripts/pack-ui.ts` copying the built web output (`packages/web/dist`, produced with the CLI mount base `/__usb_ids__/`) into `packages/cli/dist/ui`, with a clear failure when the web build output is missing.
 - Restore the root `build:app` script (web build + pack step) and chain it at the end of the root `build` script so CI, the auto-update pipeline, and npm publish all package the UI before artifacts are uploaded or published.
 - Make the `ui` integration test conditional on `dist/ui` being absent, and add a serving test that runs when `dist/ui` is present, so local and CI runs both stay meaningful.
+- Fix a latent defect in the auto-update tag stage exposed by this release path: `git tag` needs a committer identity, which was only configured inside the data-gated version-bump step, so publishing a version whose data commit already existed (resume, packaging re-release) failed with "Committer identity unknown". The tag stage now configures its own identity.
 - Document the packaging path in the `usb-ids-app` agent skill.
 - Re-release the npm package (CalVer patch bump, same data: `2.20261125.0` → `2.20261125.1`, matching the `2.20260610.0` → `2.20260610.1` packaging-fix precedent) via the auto-update workflow so the registry actually receives a tarball containing `dist/ui`.
 
